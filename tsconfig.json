@@ -13,6 +13,13 @@
     "strict": true,
     /** jsx options **/
     "jsx": "react-jsx",
+    /** plugins **/
+    "plugins": [
+        {"name": "typescript-plugin-css-modules"}
+    ],
+    "paths": {
+        "@/*": ["./frontend/*"]
+    }
   },
   "exclude": [
     "node_modules"

@@ -1,0 +1,4 @@
+{
+    // Enables intellisense for sass modules via typescript-plugin-css-modules
+    "typescript.tsdk": "node_modules/typescript/lib",
+}
