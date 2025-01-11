@@ -11,6 +11,8 @@
     "esModuleInterop": true,
     /** type checking options **/
     "strict": true,
+    /** jsx options **/
+    "jsx": "react-jsx",
   },
   "exclude": [
     "node_modules"
