@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    /** output options **/
+    "outDir": "./build",
+    "noEmit": true,
+    "declaration": false,
+    /** build options **/
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    /** type checking options **/
+    "strict": true,
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
