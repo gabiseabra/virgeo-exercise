@@ -1,0 +1,13 @@
+{
+    "name": "@virgeo-exercise/backend",
+    "private": true,
+    "scripts": {
+        "start": "node ./server.js"
+    },
+    "dependencies": {
+        "body-parser": "1.20.3",
+        "concurrently": "^9.1.2",
+        "express": "4.21.2",
+        "jsonwebtoken": "9.0.2"
+    }
+}

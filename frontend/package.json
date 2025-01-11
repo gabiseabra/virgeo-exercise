@@ -1,0 +1,11 @@
+{
+    "name": "@virgeo-exercise/frontend",
+    "private": true,
+    "scripts": {
+        "start": "vite"
+    },
+    "dependencies": {
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0"
+    }
+}
