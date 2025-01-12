@@ -1,10 +1,30 @@
 import { withAuth } from '@/context/auth';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { useFetch } from '@/hooks/useFetch';
+import { MapContainer, Marker, TileLayer } from 'react-leaflet';
+import * as L from 'leaflet'
+import * as GeoJson from "geojson";
+import { useEffect, useMemo } from 'react';
 
 function Map() {
+  const [{ data, loading }, fetch] = useFetch<GeoJson.FeatureCollection<GeoJson.Point>>({
+    method: 'GET',
+    url: '/data',
+  });
+
+  const center = useMemo<[number, number]>(() => {
+    if (!data) return [0, 0];
+    const { lat, lng } = L.geoJSON(data).getBounds().getCenter();
+    return [lat, lng];
+  }, [data]);
+
+  // Fetch data on mount
+  useEffect(() => { fetch() }, []);
+
+  if (!data || loading) return (<div>Loading...</div>);
+
   return (
     <MapContainer
-      center={[51.505, -0.09]}
+      center={center}
       zoom={13}
       scrollWheelZoom={false}
       style={{
@@ -19,11 +39,12 @@ function Map() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker position={[51.505, -0.09]}>
-        <Popup>
-          A pretty CSS3 popup. <br /> Easily customizable.
-        </Popup>
-      </Marker>
+      {data.features.map(({ geometry }, index) => (
+        <Marker
+          key={index}
+          position={geometry.coordinates.toReversed() as [number, number]}
+        />
+      ))}
     </MapContainer>
   )
 }
