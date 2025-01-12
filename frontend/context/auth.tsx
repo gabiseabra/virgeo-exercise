@@ -1,4 +1,5 @@
 import { ApiResponse, useFetch } from "@/hooks/useFetch";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -23,17 +24,17 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
+  const [{ accessToken }, setAccessToken] = useLocalStorage<{ accessToken?: string }>('ACCESS_TOKEN', { });
   const [response, request] = useFetch<{ accessToken: string }, Credentials>({
     method: 'POST',
     url: '/login'
   });
   const login = useCallback(async (input: Credentials) => {
     const { accessToken } = await request(input);
-    setAccessToken(accessToken);
+    setAccessToken({ accessToken });
   }, []);
   const logout = useCallback(() => {
-    setAccessToken(undefined);
+    setAccessToken({ });
   }, []);
   return (
     <AuthContext.Provider value={{
