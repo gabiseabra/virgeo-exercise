@@ -34,7 +34,7 @@ export type ApiResponse<T> = {
   error?: ApiError;
 };
 
-export type UseFetchOptions<In> = {
+export type UseFetchOptions = {
   method: 'POST' | 'GET';
   url: string;
 }
@@ -52,7 +52,7 @@ export type UseFetch<Out, In> = [ApiResponse<Out>, ((data: In) => Promise<Out>)]
  * @param url - URL to fetch data from
  * @returns A tuple with the response object and a function to fetch data
  */
-export function useFetch<Out, In = void>({ method, url }: UseFetchOptions<In>): UseFetch<Out, In> {
+export function useFetch<Out, In = void>({ method, url }: UseFetchOptions): UseFetch<Out, In> {
   const { accessToken } = useAuth().data || {};
   const [response, setResponse] = useState<ApiResponse<Out>>({ loading: false });
   const fetch = useCallback(async (input: In): Promise<Out> => {
