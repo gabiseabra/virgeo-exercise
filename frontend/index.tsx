@@ -1,10 +1,16 @@
 // This is the entry point of the frontend application.
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from '@/components/App';
+import Shell from '@/components/Shell';
+import Context from '@/context';
+import Routes from '@/routes';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <Context>
+      <Shell>
+        <Routes />
+      </Shell>
+    </Context>
   </React.StrictMode>
 );

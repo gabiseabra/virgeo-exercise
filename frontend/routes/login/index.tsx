@@ -1,7 +1,8 @@
-import { useAuth } from "@/context/auth";
 import { useCallback } from "react";
-import Spinner from "./Spinner";
+import { useNavigate } from "react-router";
+import { useAuth } from "@/context/auth";
 import { ApiError, ApiErrorType } from "@/hooks/useFetch";
+import Spinner from "@/components/Spinner";
 
 const getField = (e: React.FormEvent, name: string): string | undefined => {
   const target = e.target as HTMLFormElement;
@@ -9,7 +10,9 @@ const getField = (e: React.FormEvent, name: string): string | undefined => {
 }
 
 export default function Login() {
+  const navigate = useNavigate();
   const { loading, error, login } = useAuth();
+
   const onSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     const username = getField(e, 'username');
@@ -17,12 +20,14 @@ export default function Login() {
     if (!username || !password) return;
     try {
       await login({ username, password });
+      navigate('/');
     } catch(error) {
       // Handle unauthorized errors in this component
       if (error instanceof ApiError && error.type !== ApiErrorType.Unauthorized)
         throw error;
     }
   }, [login]);
+
   return (
     <div>
       {loading && <Spinner />}

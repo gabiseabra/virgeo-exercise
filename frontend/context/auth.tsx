@@ -1,5 +1,6 @@
 import { ApiResponse, useFetch } from "@/hooks/useFetch";
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
 export type Credentials = {
   username: string
@@ -16,6 +17,10 @@ export const AuthContext = createContext<AuthContext>({
   async login() {},
   async logout() {},
 });
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
@@ -42,6 +47,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
+/**
+ * Higher order component that requires authentication.
+ * @param Component    Component to render when authenticated
+ * @param Loading      Component to render while loading
+ * @param Unauthorized Component to render when unauthorized. Defaults to redirecting to /login
+ */
+export const withAuth = <Props extends object,>(
+  Component: React.ComponentType<Props>,
+  Loading: React.ComponentType = DefaultLoading,
+  Unauthorized: React.ComponentType = DefaultUnauthorized,
+) => (props: Props) => {
+  const { data, loading } = useAuth();
+  if (loading) return <Loading />;
+  if (!data) return <Unauthorized />;
+  return <Component {...props} />;
+}
+
+function DefaultLoading() {
+  return <div>Loading...</div>;
+}
+
+function DefaultUnauthorized() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate('/login');
+  }, []);
+  return null;
 }

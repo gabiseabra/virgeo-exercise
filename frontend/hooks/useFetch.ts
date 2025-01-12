@@ -54,7 +54,7 @@ export type UseFetch<Out, In> = [ApiResponse<Out>, ((data: In) => Promise<Out>)]
  */
 export function useFetch<Out, In = void>({ method, url }: UseFetchOptions<In>): UseFetch<Out, In> {
   const { accessToken } = useAuth().data || {};
-  const [response, setResponse] = useState<ApiResponse<Out>>({ loading: true });
+  const [response, setResponse] = useState<ApiResponse<Out>>({ loading: false });
   const fetch = useCallback(async (input: In): Promise<Out> => {
     setResponse({ loading: true });
     const response = await window.fetch(`${BE_SERVER}${url}`, {

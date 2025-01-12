@@ -1,6 +1,7 @@
+import { withAuth } from '@/context/auth';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 
-export function Map() {
+function Map() {
   return (
     <MapContainer
       center={[51.505, -0.09]}
@@ -20,3 +21,5 @@ export function Map() {
     </MapContainer>
   )
 }
+
+export default withAuth(Map);
