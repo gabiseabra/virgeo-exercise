@@ -2,7 +2,7 @@ import { useAuth } from '@/context/auth';
 import { createSlot } from '@/context/slots';
 import * as Styles from './Shell.module.scss';
 
-const Header = createSlot(Symbol('Header'));
+const Header = createSlot();
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (

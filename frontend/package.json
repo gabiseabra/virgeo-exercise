@@ -2,7 +2,9 @@
     "name": "@virgeo-exercise/frontend",
     "private": true,
     "scripts": {
-        "start": "vite"
+        "start": "vite",
+        "test": "jest",
+        "test:watch": "jest --watch"
     },
     "dependencies": {
         "react": "^19.0.0",

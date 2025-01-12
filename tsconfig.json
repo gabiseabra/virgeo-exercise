@@ -11,6 +11,7 @@
     "esModuleInterop": true,
     /** type checking options **/
     "strict": true,
+    "types": ["jest", "node", "react"],
     /** jsx options **/
     "jsx": "react-jsx",
     /** plugins **/

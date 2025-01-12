@@ -72,10 +72,13 @@ const removeNode = (id: Key, node: React.ReactNode) => (slots: Slots) => ({
 /**
  * Creates a slot and fill component pair.
  */
-export const createSlot = (id: string | symbol): {
+export const createSlot = (): {
   Slot: React.ComponentType
   Fill: React.ComponentType<{ children: React.ReactNode }>
-} => ({
-  Slot: () => <Slot id={id} />,
-  Fill: ({ children }) => <Fill id={id}>{children}</Fill>
-})
+} => {
+  const id = Symbol();
+  return {
+    Slot: () => <Slot id={id} />,
+    Fill: ({ children }) => <Fill id={id}>{children}</Fill>
+  }
+}
