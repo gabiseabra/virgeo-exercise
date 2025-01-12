@@ -1,7 +1,17 @@
-.Shell {
-  position: relative;
-  display: block;
+.main {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   flex: 1;
+}
+
+.header {
+  flex: 0 0 50px;
+}
+
+.content {
+  flex: 1;
+  display: block;
+  position: relative;
 }
