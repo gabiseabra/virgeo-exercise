@@ -1,10 +1,12 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
 
+app.use(cors())
 app.use(bodyParser.json());
 
 const SECRET_KEY = 'SECRET_KEY';
@@ -21,7 +23,7 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
   if (USERS[username] && USERS[username] === password) {
-   
+
     const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: TOKEN_EXPIRY });
     res.json({ accessToken: token });
   } else {
@@ -45,14 +47,14 @@ function authenticateToken(req, res, next) {
 
 function generateRandomGeoJSON(numPoints, centerLat, centerLon, maxDistance) {
     const features = [];
-  
+
     for (let i = 0; i < numPoints; i++) {
       const offsetLat = (Math.random() - 0.5) * maxDistance * 2;
       const offsetLon = (Math.random() - 0.5) * maxDistance * 2;
-  
+
       const latitude = centerLat + offsetLat;
       const longitude = centerLon + offsetLon;
-  
+
       features.push({
         type: 'Feature',
         geometry: {
@@ -65,7 +67,7 @@ function generateRandomGeoJSON(numPoints, centerLat, centerLon, maxDistance) {
         },
       });
     }
-  
+
     return {
       type: 'FeatureCollection',
       features,
@@ -78,14 +80,14 @@ app.get('/data', authenticateToken, (_, res) => {
     const centerLat = 52.050203;
     const centerLon = 4.413934;
     const maxDistance = 0.01; // Max distance from the center (degrees)
-  
+
     const geojsonFeatureCollection = generateRandomGeoJSON(
       numPoints,
       centerLat,
       centerLon,
       maxDistance
     );
-  
+
     res.json(geojsonFeatureCollection);
 });
 

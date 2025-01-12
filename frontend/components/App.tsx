@@ -1,10 +1,13 @@
+import AppContext from '@/context';
+import Login from './Login';
 import * as Styles from './App.module.scss';
-import { Map } from './Map';
 
 export default function App() {
   return (
     <div className={Styles.App}>
-      <Map />
+      <AppContext>
+        <Login />
+      </AppContext>
     </div>
   );
 }
