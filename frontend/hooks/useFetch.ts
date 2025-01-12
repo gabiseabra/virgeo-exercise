@@ -42,18 +42,17 @@ export type UseFetchOptions = {
 export type UseFetch<Out, In> = [ApiResponse<Out>, ((data: In) => Promise<Out>)];
 
 /**
- * Fetch data from the backend.
- * This hook handles the loading state and error handling.
+ * Fetch data from the backend and handle the loading and error states.
  * @note This hook handles authorization by referencing the auth context if available, otherwise it will fetch data
  *      without an access token.
- * @note The fetch function can throw an ApiError if the response is not ok. If the error is not caught, it will be
- *       thrown to the parent component, otherwise it will be stored in the response object.
+ * @note By default, the user will log out if there is an Unauthorized error.
+ * @note The returned fetch function will throw an error if the response is not ok.
  * @param method - HTTP method to use
  * @param url - URL to fetch data from
  * @returns A tuple with the response object and a function to fetch data
  */
 export function useFetch<Out, In = void>({ method, url }: UseFetchOptions): UseFetch<Out, In> {
-  const { accessToken } = useAuth().data || {};
+  const { data: { accessToken } = {}, logout } = useAuth();
   const [response, setResponse] = useState<ApiResponse<Out>>({ loading: false });
   const fetch = useCallback(async (input: In): Promise<Out> => {
     setResponse({ loading: true });
@@ -69,6 +68,9 @@ export function useFetch<Out, In = void>({ method, url }: UseFetchOptions): UseF
     const error = !response.ok ? new ApiError(response) : undefined;
     const data: Out = error ? undefined : await response.json();
     setResponse({ loading: false, data, error });
+    if (error?.type === ApiErrorType.Unauthorized) {
+      logout();
+    }
     if (error) throw error;
     return data;
   }, [method, url, accessToken]);

@@ -18,14 +18,8 @@ export default function Login() {
     const username = getField(e, 'username');
     const password = getField(e, 'password');
     if (!username || !password) return;
-    try {
-      await login({ username, password });
-      navigate('/');
-    } catch(error) {
-      // Handle unauthorized errors in this component
-      if (error instanceof ApiError && error.type !== ApiErrorType.Unauthorized)
-        throw error;
-    }
+    await login({ username, password });
+    navigate('/');
   }, [login]);
 
   return (
