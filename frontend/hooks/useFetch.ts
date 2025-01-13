@@ -12,9 +12,15 @@ export enum ApiErrorType {
 export class ApiError extends Error {
   code: number;
 
-  constructor(public response: Response) {
-    super(response.statusText);
-    this.code = response.status;
+  constructor(code: number, error: string) {
+    super(error);
+    this.code = code;
+  }
+
+  static async fromResponse(response: Response): Promise<ApiError> {
+    const { status } = response;
+    const message = (await response.json()).error ?? response.statusText;
+    return new ApiError(status, message);
   }
 
   get type(): ApiErrorType {
@@ -60,12 +66,18 @@ export function useFetch<Out, In = void>({ method, url }: UseFetchOptions): UseF
       method,
       headers: {
         Accept: 'application/json',
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        ...(typeof input !== 'undefined' ? { 'Content-Type': 'application/json'} : {}),
+        ...(accessToken ? {
+          Authorization: `Bearer ${accessToken}`
+        } : {}),
+        ...(typeof input !== 'undefined' ? {
+          'Content-Type': 'application/json'
+        } : {}),
       },
-      body: typeof input !== 'undefined' ? JSON.stringify(input) : undefined,
+      ...(typeof input !== 'undefined' ? {
+        body: JSON.stringify(input)
+       } : {}),
     });
-    const error = !response.ok ? new ApiError(response) : undefined;
+    const error = !response.ok ? await ApiError.fromResponse(response) : undefined;
     const data: Out = error ? undefined : await response.json();
     setResponse({ loading: false, data, error });
     if (error?.type === ApiErrorType.Unauthorized) {
