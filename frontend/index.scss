@@ -1,6 +1,7 @@
-@import "sanitize.css/sanitize.css";
-@import "leaflet/dist/leaflet.css";
-@import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
+@use "sanitize.css/sanitize.css";
+@use "leaflet/dist/leaflet.css";
+@use "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
+@use "react-leaflet-markercluster/styles";
 
 html {
   margin: 0;

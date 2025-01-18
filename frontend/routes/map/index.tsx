@@ -5,6 +5,7 @@ import * as L from 'leaflet'
 import * as GeoJson from "geojson";
 import { useEffect, useMemo } from 'react';
 import { GestureHandling } from 'leaflet-gesture-handling';
+import MarkerClusterGroup from 'react-leaflet-markercluster';
 
 function MapController() {
   const map = useMap();
@@ -49,12 +50,17 @@ function Map() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {data.features.map(({ geometry }, index) => (
-        <Marker
-          key={index}
-          position={geometry.coordinates.toReversed() as [number, number]}
-        />
-      ))}
+      <MarkerClusterGroup
+        animate={false}
+        disableClusteringAtZoom={18}
+      >
+        {data.features.map(({ geometry }, index) => (
+          <Marker
+            key={index}
+            position={geometry.coordinates.toReversed() as [number, number]}
+          />
+        ))}
+      </MarkerClusterGroup>
     </MapContainer>
   )
 }
