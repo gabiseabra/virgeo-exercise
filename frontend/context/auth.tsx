@@ -1,3 +1,4 @@
+import Redirect from "@/components/Redirect";
 import { ApiResponse, useFetch } from "@/hooks/useFetch";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { createContext, useCallback, useContext, useEffect } from "react";
@@ -53,19 +54,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 /**
  * Higher order component that requires authentication.
- * @param Component    Component to render when authenticated
- * @param Loading      Component to render while loading
+ * @param Authorized   Component to render when authenticated
  * @param Unauthorized Component to render when unauthorized. Defaults to redirecting to /login
+ * @param Loading      Component to render while loading
  */
 export const withAuth = <Props extends object,>(
-  Component: React.ComponentType<Props>,
-  Loading: React.ComponentType = DefaultLoading,
-  Unauthorized: React.ComponentType = DefaultUnauthorized,
+  Authorized: React.ComponentType<Props>,
+  Unauthorized: React.ComponentType<Props> = DefaultUnauthorized,
+  Loading: React.ComponentType<Props> = DefaultLoading,
 ) => (props: Props) => {
   const { data, loading } = useAuth();
-  if (loading) return <Loading />;
-  if (!data) return <Unauthorized />;
-  return <Component {...props} />;
+  if (loading) return <Loading {...props} />;
+  if (!data) return <Unauthorized {...props} />;
+  return <Authorized {...props} />;
 }
 
 function DefaultLoading() {
@@ -73,9 +74,5 @@ function DefaultLoading() {
 }
 
 function DefaultUnauthorized() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    navigate('/login');
-  }, []);
-  return null;
+  return <Redirect to="/login" />;
 }
