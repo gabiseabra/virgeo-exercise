@@ -40,6 +40,11 @@ export type ApiResponse<T> = {
   error?: ApiError;
 };
 
+export const ApiResponse = <T,>(options: Partial<ApiResponse<T>>): ApiResponse<T> => ({
+  loading: false,
+  ...options,
+});
+
 export type UseFetchOptions = {
   method: 'POST' | 'GET';
   url: string;

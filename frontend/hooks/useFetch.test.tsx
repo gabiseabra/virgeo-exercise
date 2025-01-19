@@ -1,5 +1,5 @@
-import { act, renderHook } from "@testing-library/react";
-import { AuthContext } from "@/context/auth";
+import { act, renderHook } from "@/test/utils";
+import { AuthContext, AuthContextType } from "@/context/auth";
 import { ApiError, useFetch } from "./useFetch";
 
 describe('useFetch', () => {
@@ -104,7 +104,7 @@ const mockFetch = (status: number, data: any) => jest.fn().mockResolvedValue({
   json: async () => data,
 });
 
-const mockAuthProvider = (ctx: Partial<AuthContext>) => ({ children }: { children: React.ReactNode }) => (
+const mockAuthProvider = (ctx: Partial<AuthContextType>) => ({ children }: { children: React.ReactNode }) => (
   <AuthContext.Provider value={{
     loading: false,
     login: jest.fn(),

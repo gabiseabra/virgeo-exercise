@@ -8,16 +8,19 @@ export type Credentials = {
   password: string
 }
 
-export type AuthContext = ApiResponse<{ accessToken: string }> & {
+export type AuthContextType = ApiResponse<{ accessToken: string }> & {
   login(input: Credentials): Promise<void>
   logout(): void
 }
 
-export const AuthContext = createContext<AuthContext>({
+export const AuthContextType = (options: Partial<AuthContextType>): AuthContextType => ({
   loading: false,
   async login() {},
   async logout() {},
+  ...options,
 });
+
+export const AuthContext = createContext<AuthContextType>(AuthContextType({}));
 
 export function useAuth() {
   return useContext(AuthContext);
