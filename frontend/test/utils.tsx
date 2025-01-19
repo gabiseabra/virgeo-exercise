@@ -4,8 +4,8 @@ import * as RTL from '@testing-library/react'
 import Context from '@/context'
 import Shell from '@/components/Shell'
 import Routes from '@/routes'
-import { MemoryRouter } from 'react-router'
 
+export { default as fetchMock } from '@fetch-mock/jest'
 export * from '@testing-library/react'
 
 type WrapperProps = {

@@ -1,9 +1,14 @@
 import { JestConfigWithTsJest } from 'ts-jest'
 
-const esModules = ['@react-leaflet', 'react-leaflet'].join('|');
+const esModules = [
+  '@react-leaflet',
+  'react-leaflet',
+  '@fetch-mock',
+  'fetch-mock',
+].join('|');
 
 export default {
-  testEnvironment: 'jsdom',
+  testEnvironment: '<rootDir>/test/env.ts',
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
