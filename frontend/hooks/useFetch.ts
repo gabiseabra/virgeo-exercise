@@ -57,7 +57,8 @@ export type UseFetch<Out, In> = [ApiResponse<Out>, ((data: In) => Promise<Out>)]
  * @note This hook handles authorization by referencing the auth context if available, otherwise it will fetch data
  *      without an access token.
  * @note By default, the user will log out if there is an Unauthorized error.
- * @note The returned fetch function will throw an error if the response is not ok.
+ * @note The returned fetch function will throw an error if the response is not ok. The caller should handle the error.
+ *       See methods below for a helpers to handle errors.
  * @param method - HTTP method to use
  * @param url - URL to fetch data from
  * @returns A tuple with the response object and a function to fetch data
@@ -93,3 +94,10 @@ export function useFetch<Out, In = void>({ method, url }: UseFetchOptions): UseF
   }, [method, url, accessToken]);
   return [response, request];
 }
+
+export const handleApiError = (fn: (error: ApiError) => void, predicate?: (error: ApiError) => boolean) => (error: unknown) => {
+  if (error && error instanceof ApiError && (!predicate || predicate(error))) return fn(error);
+  throw error;
+}
+
+export const logApiError = (predicate?: (error: ApiError) => boolean) => handleApiError(console.error, predicate);

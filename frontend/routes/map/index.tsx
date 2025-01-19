@@ -1,5 +1,5 @@
 import { withAuth } from '@/context/auth';
-import { useFetch } from '@/hooks/useFetch';
+import { logApiError, useFetch } from '@/hooks/useFetch';
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
 import * as L from 'leaflet'
 import * as GeoJson from "geojson";
@@ -32,7 +32,7 @@ function Map() {
   }, [data]);
 
   // Fetch data on mount
-  useEffect(() => { fetch() }, []);
+  useEffect(() => { fetch().catch(logApiError()) }, []);
 
   if (!data || loading) return (<div>Loading...</div>);
   return (
