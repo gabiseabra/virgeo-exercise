@@ -1,5 +1,5 @@
-import React from 'react'
-import { MemoryRouter } from 'react-router'
+import React, { forwardRef, useImperativeHandle, useRef } from 'react'
+import { Location, MemoryRouter, useLocation } from 'react-router'
 import * as RTL from '@testing-library/react'
 import Context from '@/context'
 import Shell from '@/components/Shell'
@@ -24,14 +24,26 @@ export const Wrapper = ({ children, route = '/' }: WrapperProps)=> (
   </React.StrictMode>
 );
 
-export const renderRoute = (route: string) =>
-  RTL.render(
+export const renderRoute = (route: string): RTL.RenderResult & {
+  location: React.RefObject<Location | null>;
+} => {
+  const location = React.createRef<Location>();
+  const renderResult = RTL.render(
     <Wrapper route={route}>
+      <LocationProvider ref={location} />
       <Shell>
         <Routes />
       </Shell>
     </Wrapper>
   );
+  return { ...renderResult, location };
+}
+
+const LocationProvider = forwardRef((_: object, ref?: React.ForwardedRef<Location>) => {
+  const location = useLocation();
+  useImperativeHandle(ref, () => location, [location]);
+  return null;
+})
 
 export const flushPromises = () => RTL.act(() => new Promise((resolve) => setTimeout(resolve, 0)));
 
