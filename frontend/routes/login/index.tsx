@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/context/auth";
-import { ApiError, ApiErrorType } from "@/hooks/useFetch";
 import Spinner from "@/components/Spinner";
+import Shell from "@/components/Shell";
 
 const getField = (e: React.FormEvent, name: string): string | undefined => {
   const target = e.target as HTMLFormElement;
@@ -24,8 +24,12 @@ export default function Login() {
 
   return (
     <div>
+      <Shell.Header>
+        <h1>Login</h1>
+      </Shell.Header>
+
       {loading && <Spinner />}
-      <h1>Login</h1>
+
       <form onSubmit={onSubmit}>
         {error && <div>{error.message}</div>}
         <label>

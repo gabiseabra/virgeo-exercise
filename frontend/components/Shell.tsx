@@ -6,15 +6,15 @@ const Header = createSlot();
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className={Styles.main}>
-      <div className={Styles.header}>
+    <div className={Styles.wrapper} data-testid="Shell">
+      <header className={Styles.header} data-testid="Shell.header">
         <Header.Slot />
         <LogoutButton />
-      </div>
-      <div className={Styles.content}>
+      </header>
+      <main className={Styles.main} data-testid="Shell.main">
         {children}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
 

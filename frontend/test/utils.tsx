@@ -4,6 +4,7 @@ import * as RTL from '@testing-library/react'
 import Context from '@/context'
 import Shell from '@/components/Shell'
 import Routes from '@/routes'
+import { StorageKey, StorageMap } from '@/hooks/useLocalStorage'
 
 export { default as fetchMock } from '@fetch-mock/jest'
 export * from '@testing-library/react'
@@ -31,3 +32,9 @@ export const renderRoute = (route: string) =>
       </Shell>
     </Wrapper>
   );
+
+export const flushPromises = () => RTL.act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+
+export const mockLocalStorage = (values: Partial<StorageMap> = {}) => {
+  jest.spyOn(window.localStorage.__proto__, 'getItem').mockImplementation((key) => JSON.stringify(values[key as StorageKey]));
+}

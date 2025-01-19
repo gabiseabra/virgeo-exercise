@@ -1,4 +1,4 @@
-.main {
+.wrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -10,7 +10,7 @@
   flex: 0 0 50px;
 }
 
-.content {
+.main {
   flex: 1;
   display: block;
   position: relative;

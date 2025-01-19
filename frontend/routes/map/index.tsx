@@ -6,6 +6,9 @@ import * as GeoJson from "geojson";
 import { useEffect, useMemo } from 'react';
 import { GestureHandling } from 'leaflet-gesture-handling';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
+import Shell from '@/components/Shell';
+
+const AmsterdamCentraal: [number, number] = [52.379189, 4.899431];
 
 function MapController() {
   const map = useMap();
@@ -23,7 +26,7 @@ function Map() {
     url: '/data',
   });
   const center = useMemo<[number, number]>(() => {
-    if (!data) return [0, 0];
+    if (!data || !data.features.length) return AmsterdamCentraal;
     const { lat, lng } = L.geoJSON(data).getBounds().getCenter();
     return [lat, lng];
   }, [data]);
@@ -33,35 +36,41 @@ function Map() {
 
   if (!data || loading) return (<div>Loading...</div>);
   return (
-    <MapContainer
-      center={center}
-      zoom={13}
-      scrollWheelZoom={false}
-      style={{
-        position: 'absolute',
-        height: '100%',
-        width: '100%',
-        top: 0,
-        left: 0,
-      }}
-    >
-      <MapController />
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MarkerClusterGroup
-        animate={false}
-        disableClusteringAtZoom={18}
+    <>
+      <Shell.Header>
+        <h1>Map</h1>
+      </Shell.Header>
+
+      <MapContainer
+        center={center}
+        zoom={13}
+        scrollWheelZoom={false}
+        style={{
+          position: 'absolute',
+          height: '100%',
+          width: '100%',
+          top: 0,
+          left: 0,
+        }}
       >
-        {data.features.map(({ geometry }, index) => (
-          <Marker
-            key={index}
-            position={geometry.coordinates.toReversed() as [number, number]}
-          />
-        ))}
-      </MarkerClusterGroup>
-    </MapContainer>
+        <MapController />
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <MarkerClusterGroup
+          animate={false}
+          disableClusteringAtZoom={18}
+        >
+          {data.features.map(({ geometry }, index) => (
+            <Marker
+              key={index}
+              position={geometry.coordinates.toReversed() as [number, number]}
+            />
+          ))}
+        </MarkerClusterGroup>
+      </MapContainer>
+    </>
   )
 }
 
