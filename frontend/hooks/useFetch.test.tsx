@@ -1,4 +1,4 @@
-import { act, renderHook, fetchMock } from "@/test/utils";
+import { act, renderHook, mockFetch } from "@/test/utils";
 import { AuthContext, AuthContextType } from "@/context/auth";
 import { ApiError, useFetch } from "./useFetch";
 
@@ -11,6 +11,7 @@ describe('useFetch', () => {
   });
 
   it('should call fetch', async () => {
+    const fetchMock = mockFetch();
     fetchMock.get('http://localhost:3000/test', {
       status: 200,
       body: {}
@@ -27,6 +28,7 @@ describe('useFetch', () => {
   });
 
   it('should return the result JSON if the status is ok', async () => {
+    const fetchMock = mockFetch();
     fetchMock.get('http://localhost:3000/test', {
       status: 200,
       body: { test: 'test' },
@@ -40,6 +42,7 @@ describe('useFetch', () => {
   });
 
   it('should throw an error if the status is not ok', async () => {
+    const fetchMock = mockFetch();
     fetchMock.get('http://localhost:3000/test', {
       status: 400,
       body: { error: 'error' },
@@ -61,6 +64,7 @@ describe('useFetch', () => {
   });
 
   it('should include Content-Type header if a body is provided', async () => {
+    const fetchMock = mockFetch();
     fetchMock.post('http://localhost:3000/test', {
       status: 200,
       body: {},
@@ -79,6 +83,7 @@ describe('useFetch', () => {
   });
 
   it('should include Authorization header if the token is provided', async () => {
+    const fetchMock = mockFetch();
     fetchMock.get('http://localhost:3000/test', {
       status: 200,
       body: {},
@@ -98,6 +103,7 @@ describe('useFetch', () => {
   });
 
   it('should logout if the status is 401', async () => {
+    const fetchMock = mockFetch();
     fetchMock.get('http://localhost:3000/test', {
       status: 401,
       body: {},

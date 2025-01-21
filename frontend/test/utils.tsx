@@ -5,8 +5,8 @@ import Context from '@/context'
 import Shell from '@/components/Shell'
 import Routes from '@/routes'
 import { StorageKey, StorageMap } from '@/hooks/useLocalStorage'
+import fetchMockJest from '@fetch-mock/jest'
 
-export { default as fetchMock } from '@fetch-mock/jest'
 export * from '@testing-library/react'
 
 type WrapperProps = {
@@ -46,6 +46,11 @@ const LocationProvider = forwardRef((_: object, ref?: React.ForwardedRef<Locatio
 })
 
 export const flushPromises = () => RTL.act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+
+type FetchMock = ReturnType<typeof fetchMockJest.mockGlobal>;
+export const mockFetch = (): FetchMock => {
+  return fetchMockJest.mockGlobal();
+};
 
 export const mockLocalStorage = (values: Partial<StorageMap> = {}) => {
   jest.spyOn(window.localStorage.__proto__, 'getItem').mockImplementation((key) => JSON.stringify(values[key as StorageKey]));

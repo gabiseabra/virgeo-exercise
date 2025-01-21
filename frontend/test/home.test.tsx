@@ -1,4 +1,4 @@
-import { act, fetchMock, flushPromises, mockLocalStorage, renderRoute, screen } from "./utils";
+import { flushPromises, mockFetch, mockLocalStorage, renderRoute, screen } from "./utils";
 
 describe('/', () => {
   it('should redirect to /login if not authenticated', async () => {
@@ -11,7 +11,8 @@ describe('/', () => {
 
   it('should render the map if authenticated', async () => {
     mockLocalStorage({ 'ACCESS_TOKEN': { accessToken: 'token' } });
-    fetchMock.get(/.*/, JSON.stringify(null));
+    const fetch = mockFetch();
+    fetch.get(/.*/, JSON.stringify(null));
 
     const { location } = renderRoute('/');
 
@@ -22,7 +23,8 @@ describe('/', () => {
 
   it('should redirect to /login if the initial request is unauthorized', async () => {
     mockLocalStorage({ 'ACCESS_TOKEN': { accessToken: 'token' } });
-    fetchMock.get(/.*/, {
+    const fetch = mockFetch();
+    fetch.get(/.*/, {
       status: 401,
       body: { error: 'Unauthorized' },
     });
