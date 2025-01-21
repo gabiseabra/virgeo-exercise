@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react'
+import React, { forwardRef, useImperativeHandle } from 'react'
 import { Location, MemoryRouter, useLocation } from 'react-router'
 import * as RTL from '@testing-library/react'
 import userEvent, { UserEvent } from '@testing-library/user-event'
@@ -11,11 +11,11 @@ import { StorageKey, StorageMap } from '@/hooks/useLocalStorage'
 export * from '@testing-library/react'
 
 type WrapperProps = {
-  children: React.ReactNode;
-  route?: string;
-};
+  children: React.ReactNode
+  route?: string
+}
 
-export const Wrapper = ({ children, route = '/' }: WrapperProps)=> (
+export const Wrapper = ({ children, route = '/' }: WrapperProps) => (
   <React.StrictMode>
     <MemoryRouter initialEntries={[route]}>
       <Context>
@@ -23,16 +23,16 @@ export const Wrapper = ({ children, route = '/' }: WrapperProps)=> (
       </Context>
     </MemoryRouter>
   </React.StrictMode>
-);
+)
 
 type RenderResult = RTL.RenderResult & {
-  location: React.RefObject<Location | null>;
-  user: UserEvent;
-};
+  location: React.RefObject<Location | null>
+  user: UserEvent
+}
 
 export const renderRoute = async (route: string): Promise<RenderResult> => {
-  const user = userEvent.setup();
-  const location = React.createRef<Location>();
+  const user = userEvent.setup()
+  const location = React.createRef<Location>()
   return RTL.act(() => ({
     user,
     location,
@@ -42,24 +42,24 @@ export const renderRoute = async (route: string): Promise<RenderResult> => {
         <Shell>
           <Routes />
         </Shell>
-      </Wrapper>
+      </Wrapper>,
     ),
-  }));
+  }))
 }
 
-const LocationProvider = forwardRef((_: object, ref?: React.ForwardedRef<Location>) => {
-  const location = useLocation();
-  useImperativeHandle(ref, () => location, [location]);
-  return null;
+const LocationProvider = forwardRef(function LocationProvider(_: object, ref?: React.ForwardedRef<Location>) {
+  const location = useLocation()
+  useImperativeHandle(ref, () => location, [location])
+  return null
 })
 
-export const flushPromises = () => RTL.act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+export const flushPromises = () => RTL.act(() => new Promise(resolve => setTimeout(resolve, 0)))
 
-type FetchMock = ReturnType<typeof fetchMockJest.mockGlobal>;
+type FetchMock = ReturnType<typeof fetchMockJest.mockGlobal>
 export const mockFetch = (): FetchMock => {
-  return fetchMockJest.mockGlobal();
-};
+  return fetchMockJest.mockGlobal()
+}
 
 export const mockLocalStorage = (values: Partial<StorageMap> = {}) => {
-  jest.spyOn(window.localStorage.__proto__, 'getItem').mockImplementation((key) => JSON.stringify(values[key as StorageKey]));
+  jest.spyOn(window.localStorage.__proto__, 'getItem').mockImplementation(key => JSON.stringify(values[key as StorageKey]))
 }

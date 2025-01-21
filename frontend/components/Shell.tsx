@@ -1,8 +1,8 @@
-import { useAuth } from '@/context/auth';
-import { createSlot } from '@/context/slots';
-import * as Styles from './Shell.module.scss';
+import { useAuth } from '@/context/auth'
+import { createSlot } from '@/context/slots'
+import * as Styles from './Shell.module.scss'
 
-const Header = createSlot();
+const Header = createSlot()
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -15,15 +15,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
     </div>
-  );
+  )
 }
 
-Shell.Header = Header.Fill;
+Shell.Header = Header.Fill
 
 function LogoutButton() {
-  const { data, logout } = useAuth();
-  if (!data) return null;
+  const { data, logout } = useAuth()
+  if (!data) return null
   return (
     <button onClick={logout}>Logout</button>
-  );
+  )
 }

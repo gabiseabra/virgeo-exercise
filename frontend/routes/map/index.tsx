@@ -1,42 +1,44 @@
-import { withAuth } from '@/context/auth';
-import { logApiError, useFetch } from '@/hooks/useFetch';
-import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
+import { withAuth } from '@/context/auth'
+import { logApiError, useFetch } from '@/hooks/useFetch'
+import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
 import * as L from 'leaflet'
-import * as GeoJson from "geojson";
-import { useEffect, useMemo } from 'react';
-import { GestureHandling } from 'leaflet-gesture-handling';
-import MarkerClusterGroup from 'react-leaflet-markercluster';
-import Shell from '@/components/Shell';
+import * as GeoJson from 'geojson'
+import { useEffect, useMemo } from 'react'
+import { GestureHandling } from 'leaflet-gesture-handling'
+import MarkerClusterGroup from 'react-leaflet-markercluster'
+import Shell from '@/components/Shell'
 
-const AmsterdamCentraal: [number, number] = [52.379189, 4.899431];
+const AmsterdamCentraal: [number, number] = [52.379189, 4.899431]
 
 function MapController() {
-  const map = useMap();
+  const map = useMap()
   useEffect(() => {
-    map.addHandler("gestureHandling", GestureHandling);
+    map.addHandler('gestureHandling', GestureHandling)
     // @ts-expect-error typescript does not see additional handler here
-    map.gestureHandling.enable();
-  }, [map]);
-  return null;
+    map.gestureHandling.enable()
+  }, [map])
+  return null
 }
 
 function Map() {
-  const [response, fetch] = useFetch<GeoJson.FeatureCollection<GeoJson.Point>>({
+  const [response, request] = useFetch<GeoJson.FeatureCollection<GeoJson.Point>>({
     method: 'GET',
     url: '/data',
-  });
-  const isLoading = !response.data || response.loading;
-  const points = response.data?.features ?? [];
+  })
+  const points = response.data?.features ?? []
+  const isLoading = !response.data || response.loading
+  const isEmpty = !points.length
+
   const center = useMemo<[number, number]>(() => {
-    if (!response.data || !points.length) return AmsterdamCentraal;
-    const { lat, lng } = L.geoJSON(response.data).getBounds().getCenter();
-    return [lat, lng];
-  }, [response.data]);
+    if (isEmpty) return AmsterdamCentraal
+    const { lat, lng } = L.geoJSON(response.data).getBounds().getCenter()
+    return [lat, lng]
+  }, [response.data, isEmpty])
 
   // Fetch data on mount
-  useEffect(() => { fetch().catch(logApiError()) }, []);
+  useEffect(() => { request().catch(logApiError()) }, [request])
 
-  if (isLoading) return (<div>Loading...</div>);
+  if (isLoading) return (<div>Loading...</div>)
   return (
     <>
       <Shell.Header>
@@ -76,4 +78,4 @@ function Map() {
   )
 }
 
-export default withAuth(Map);
+export default withAuth(Map)

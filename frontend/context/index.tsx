@@ -1,5 +1,5 @@
-import { AuthProvider } from "./auth";
-import { SlotsProvider } from "./slots";
+import { AuthProvider } from './auth'
+import { SlotsProvider } from './slots'
 
 export default function AppContext({ children }: { children: React.ReactNode }) {
   return (
@@ -8,5 +8,5 @@ export default function AppContext({ children }: { children: React.ReactNode }) 
         {children}
       </SlotsProvider>
     </AuthProvider>
-  );
+  )
 }

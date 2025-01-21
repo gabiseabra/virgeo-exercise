@@ -1,6 +1,6 @@
-import { Route, Routes } from "react-router";
-import Login from "./login";
-import Map from "./map";
+import { Route, Routes } from 'react-router'
+import Login from './login'
+import Map from './map'
 
 export default function App() {
   return (
@@ -8,5 +8,5 @@ export default function App() {
       <Route index element={<Map />} />
       <Route path="/login" element={<Login />} />
     </Routes>
-  );
+  )
 }

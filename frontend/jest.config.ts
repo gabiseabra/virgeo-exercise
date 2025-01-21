@@ -5,7 +5,7 @@ const esModules = [
   'react-leaflet',
   '@fetch-mock',
   'fetch-mock',
-].join('|');
+].join('|')
 
 export default {
   testEnvironment: '<rootDir>/test/env.ts',
@@ -21,4 +21,4 @@ export default {
   transformIgnorePatterns: [
     `/node_modules/(?!${esModules}).+\\.js$`,
   ],
-} satisfies JestConfigWithTsJest;
+} satisfies JestConfigWithTsJest

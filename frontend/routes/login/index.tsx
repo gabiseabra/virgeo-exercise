@@ -1,23 +1,23 @@
-import { useCallback, useRef } from "react";
-import { useAuth, withAuth } from "@/context/auth";
-import Spinner from "@/components/Spinner";
-import Shell from "@/components/Shell";
-import Redirect from "@/components/Redirect";
-import { logApiError } from "@/hooks/useFetch";
+import { useCallback, useRef } from 'react'
+import { useAuth, withAuth } from '@/context/auth'
+import Spinner from '@/components/Spinner'
+import Shell from '@/components/Shell'
+import Redirect from '@/components/Redirect'
+import { logApiError } from '@/hooks/useFetch'
 
 function Login() {
-  const { loading, error, login } = useAuth();
-  const usernameRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const { loading, error, login } = useAuth()
+  const usernameRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
 
   const onSubmit = useCallback(async (e: React.SyntheticEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const username = usernameRef.current?.value;
-    const password = passwordRef.current?.value;
-    if (!username || !password) return;
-    await login({ username, password }).catch(logApiError());
-  }, [login]);
+    e.stopPropagation()
+    e.preventDefault()
+    const username = usernameRef.current?.value
+    const password = passwordRef.current?.value
+    if (!username || !password) return
+    await login({ username, password }).catch(logApiError())
+  }, [login])
 
   return (
     <div>
@@ -47,4 +47,4 @@ export default withAuth(
   () => <Redirect to="/" />,
   Login,
   Login,
-);
+)

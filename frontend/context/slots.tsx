@@ -20,7 +20,7 @@
  * </div>
  * ```
  */
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from 'react'
 
 type UseState<T> = [T, React.Dispatch<React.SetStateAction<T>>]
 type Slots = { [k: Key]: React.ReactNode[] }
@@ -40,7 +40,7 @@ export function SlotsProvider({ children }: { children: React.ReactNode }) {
 export function Slot({ id }: {
   id: Key
 }) {
-  const [slots] = useContext(SlotsContext);
+  const [slots] = useContext(SlotsContext)
   return slots[id] ?? null
 }
 
@@ -52,21 +52,21 @@ export function Fill({ id, children }: {
   id: Key
   children: React.ReactNode
 }) {
-  const [, setSlots] = useContext(SlotsContext);
+  const [, setSlots] = useContext(SlotsContext)
   useEffect(() => {
-    setSlots(addNode(id, children));
-    return () => setSlots(removeNode(id, children));
-  }, [id, children]);
-  return null;
+    setSlots(addNode(id, children))
+    return () => setSlots(removeNode(id, children))
+  }, [id, children, setSlots])
+  return null
 }
 
 const addNode = (id: Key, node: React.ReactNode) => (slots: Slots) => ({
   ...slots,
-  [id]: [...(slots[id] ?? []), node]
+  [id]: [...(slots[id] ?? []), node],
 })
 const removeNode = (id: Key, node: React.ReactNode) => (slots: Slots) => ({
   ...slots,
-  [id]: (slots[id] ?? []).filter((n) => n !== node)
+  [id]: (slots[id] ?? []).filter(n => n !== node),
 })
 
 /**
@@ -76,9 +76,9 @@ export const createSlot = (): {
   Slot: React.ComponentType
   Fill: React.ComponentType<{ children: React.ReactNode }>
 } => {
-  const id = Symbol();
+  const id = Symbol()
   return {
     Slot: () => <Slot id={id} />,
-    Fill: ({ children }) => <Fill id={id}>{children}</Fill>
+    Fill: ({ children }) => <Fill id={id}>{children}</Fill>,
   }
 }
