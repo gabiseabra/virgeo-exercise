@@ -19,14 +19,17 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Install dependencies
+    - name: Install
       run: npm install
+
+    - name: Typescript
+      run: npm run tsc
 
     - name: Eslint
       run: npm run lint
 
-    - name: Run tests
+    - name: Test
       run: npm test
 
-    - name: Build project
+    - name: Build
       run: npm run build

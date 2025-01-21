@@ -13,6 +13,7 @@
         "build": "npm run build -w frontend",
         "preview": "concurrently \"npm run start -w backend\" \"npm run preview -w frontend\"",
         "test": "npm run test -w frontend",
+        "tsc": "tsc",
         "lint": "eslint",
         "format": "npm run lint -- --fix"
     },
