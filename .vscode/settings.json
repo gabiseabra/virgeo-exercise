@@ -2,4 +2,9 @@
     // Enables intellisense for sass modules via typescript-plugin-css-modules
     "typescript.tsdk": "node_modules/typescript/lib",
     "jest.rootPath": "frontend",
+    "eslint.format.enable": true,
+    "prettier.enable": false,
+    "[typescript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    },
 }
