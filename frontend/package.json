@@ -3,8 +3,9 @@
     "private": true,
     "scripts": {
         "start": "vite",
-        "test": "jest",
-        "test:watch": "jest --watch"
+        "build": "vite build",
+        "preview": "vite preview",
+        "test": "jest"
     },
     "dependencies": {
         "react": "^19.0.0",

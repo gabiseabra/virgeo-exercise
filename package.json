@@ -6,9 +6,10 @@
         "frontend"
     ],
     "scripts": {
-        "start": "concurrently \"npm run start -w backend\" \"npm run start -w  frontend\"",
-        "test": "npm run test -w frontend",
-        "test:watch": "npm run test:watch -w frontend"
+        "start": "concurrently \"npm run start -w backend\" \"npm run start -w frontend\"",
+        "build": "npm run build -w frontend",
+        "preview": "concurrently \"npm run start -w backend\" \"npm run preview -w frontend\"",
+        "test": "npm run test -w frontend"
     },
     "dependencies": {
         "body-parser": "1.20.3",
