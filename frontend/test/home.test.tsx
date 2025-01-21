@@ -1,10 +1,8 @@
-import { flushPromises, mockFetch, mockLocalStorage, renderRoute, screen } from "./utils";
+import { mockFetch, mockLocalStorage, renderRoute, screen } from "./utils";
 
 describe('/', () => {
   it('should redirect to /login if not authenticated', async () => {
-    const { location } = renderRoute('/');
-
-    await flushPromises();
+    const { location } = await renderRoute('/');
 
     expect(location.current?.pathname).toBe('/login');
   });
@@ -14,9 +12,7 @@ describe('/', () => {
     const fetch = mockFetch();
     fetch.get(/.*/, JSON.stringify(null));
 
-    const { location } = renderRoute('/');
-
-    await flushPromises();
+    const { location } = await renderRoute('/');
 
     expect(location.current?.pathname).toBe('/');
   });
@@ -28,9 +24,7 @@ describe('/', () => {
       status: 401,
       body: { error: 'Unauthorized' },
     });
-    const { location } = renderRoute('/');
-
-    await flushPromises();
+    const { location } = await renderRoute('/');
 
     expect(location.current?.pathname).toBe('/login');
   });

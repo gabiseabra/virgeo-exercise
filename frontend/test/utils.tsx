@@ -1,11 +1,12 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react'
 import { Location, MemoryRouter, useLocation } from 'react-router'
 import * as RTL from '@testing-library/react'
+import userEvent, { UserEvent } from '@testing-library/user-event'
+import fetchMockJest from '@fetch-mock/jest'
 import Context from '@/context'
 import Shell from '@/components/Shell'
 import Routes from '@/routes'
 import { StorageKey, StorageMap } from '@/hooks/useLocalStorage'
-import fetchMockJest from '@fetch-mock/jest'
 
 export * from '@testing-library/react'
 
@@ -24,19 +25,26 @@ export const Wrapper = ({ children, route = '/' }: WrapperProps)=> (
   </React.StrictMode>
 );
 
-export const renderRoute = (route: string): RTL.RenderResult & {
+type RenderResult = RTL.RenderResult & {
   location: React.RefObject<Location | null>;
-} => {
+  user: UserEvent;
+};
+
+export const renderRoute = async (route: string): Promise<RenderResult> => {
+  const user = userEvent.setup();
   const location = React.createRef<Location>();
-  const renderResult = RTL.render(
-    <Wrapper route={route}>
-      <LocationProvider ref={location} />
-      <Shell>
-        <Routes />
-      </Shell>
-    </Wrapper>
-  );
-  return { ...renderResult, location };
+  return RTL.act(() => ({
+    user,
+    location,
+    ...RTL.render(
+      <Wrapper route={route}>
+        <LocationProvider ref={location} />
+        <Shell>
+          <Routes />
+        </Shell>
+      </Wrapper>
+    ),
+  }));
 }
 
 const LocationProvider = forwardRef((_: object, ref?: React.ForwardedRef<Location>) => {
