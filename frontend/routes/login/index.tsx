@@ -1,25 +1,22 @@
-import { useCallback } from "react";
-import { useNavigate } from "react-router";
-import { useAuth } from "@/context/auth";
+import { useCallback, useRef } from "react";
+import { useAuth, withAuth } from "@/context/auth";
 import Spinner from "@/components/Spinner";
 import Shell from "@/components/Shell";
+import Redirect from "@/components/Redirect";
+import { logApiError } from "@/hooks/useFetch";
 
-const getField = (e: React.FormEvent, name: string): string | undefined => {
-  const target = e.target as HTMLFormElement;
-  return target[name]?.value;
-}
-
-export default function Login() {
-  const navigate = useNavigate();
+function Login() {
   const { loading, error, login } = useAuth();
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
-  const onSubmit = useCallback(async (e: React.FormEvent) => {
+  const onSubmit = useCallback(async (e: React.SyntheticEvent) => {
+    e.stopPropagation();
     e.preventDefault();
-    const username = getField(e, 'username');
-    const password = getField(e, 'password');
+    const username = usernameRef.current?.value;
+    const password = passwordRef.current?.value;
     if (!username || !password) return;
-    await login({ username, password });
-    navigate('/');
+    await login({ username, password }).catch(logApiError());
   }, [login]);
 
   return (
@@ -33,15 +30,21 @@ export default function Login() {
       <form onSubmit={onSubmit}>
         {error && <div>{error.message}</div>}
         <label>
-          Email
-          <input name="username" type="text" required />
+          Username
+          <input ref={usernameRef} name="username" type="text" required />
         </label>
         <label>
           Password
-          <input name="password" type="password" required />
+          <input ref={passwordRef} name="password" type="password" required />
         </label>
-        <button type="submit">Login</button>
+        <button type="submit" onClick={onSubmit}>Login</button>
       </form>
     </div>
   )
 }
+
+export default withAuth(
+  () => <Redirect to="/" />,
+  Login,
+  Login,
+);

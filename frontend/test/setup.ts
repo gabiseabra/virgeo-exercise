@@ -12,4 +12,5 @@ beforeEach(() => {
   jest.resetAllMocks();
   jest.restoreAllMocks();
   fetchMockJest.unmockGlobal();
+  global.localStorage.clear();
 });
