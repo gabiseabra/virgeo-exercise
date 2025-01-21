@@ -28,6 +28,11 @@ export default ts.config(
       react,
       'react-hooks': hooks,
     },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
     rules: {
       ...react.configs.recommended.rules,
       ...hooks.configs.recommended.rules,
