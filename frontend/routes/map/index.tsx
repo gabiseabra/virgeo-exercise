@@ -21,20 +21,22 @@ function MapController() {
 }
 
 function Map() {
-  const [{ data, loading }, fetch] = useFetch<GeoJson.FeatureCollection<GeoJson.Point>>({
+  const [response, fetch] = useFetch<GeoJson.FeatureCollection<GeoJson.Point>>({
     method: 'GET',
     url: '/data',
   });
+  const isLoading = !response.data || response.loading;
+  const points = response.data?.features ?? [];
   const center = useMemo<[number, number]>(() => {
-    if (!data || !data.features.length) return AmsterdamCentraal;
-    const { lat, lng } = L.geoJSON(data).getBounds().getCenter();
+    if (!response.data || !points.length) return AmsterdamCentraal;
+    const { lat, lng } = L.geoJSON(response.data).getBounds().getCenter();
     return [lat, lng];
-  }, [data]);
+  }, [response.data]);
 
   // Fetch data on mount
   useEffect(() => { fetch().catch(logApiError()) }, []);
 
-  if (!data || loading) return (<div>Loading...</div>);
+  if (isLoading) return (<div>Loading...</div>);
   return (
     <>
       <Shell.Header>
@@ -62,7 +64,7 @@ function Map() {
           animate={false}
           disableClusteringAtZoom={18}
         >
-          {data.features.map(({ geometry }, index) => (
+          {points.map(({ geometry }, index) => (
             <Marker
               key={index}
               position={geometry.coordinates.toReversed() as [number, number]}
