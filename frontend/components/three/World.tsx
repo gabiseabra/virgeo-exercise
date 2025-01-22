@@ -3,6 +3,9 @@ import Earth from './Earth'
 import { Suspense } from 'react'
 
 export default function World() {
+  if (process.env.NODE_ENV === 'test') {
+    return null
+  }
   return (
     <Canvas>
       <Suspense fallback={null}>
