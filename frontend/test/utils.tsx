@@ -4,7 +4,7 @@ import * as RTL from '@testing-library/react'
 import userEvent, { UserEvent } from '@testing-library/user-event'
 import fetchMockJest from '@fetch-mock/jest'
 import Context from '@/context'
-import Shell from '@/components/Shell'
+import Shell from '@/components/app/Shell'
 import Routes from '@/routes'
 import { StorageKey, StorageMap } from '@/hooks/useLocalStorage'
 

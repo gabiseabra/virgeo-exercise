@@ -6,7 +6,7 @@ import * as GeoJson from 'geojson'
 import { useEffect, useMemo } from 'react'
 import { GestureHandling } from 'leaflet-gesture-handling'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
-import Shell from '@/components/Shell'
+import Shell from '@/components/app/Shell'
 
 const AmsterdamCentraal: [number, number] = [52.379189, 4.899431]
 

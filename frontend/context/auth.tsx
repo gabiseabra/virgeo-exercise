@@ -1,4 +1,4 @@
-import Redirect from '@/components/Redirect'
+import Redirect from '@/components/common/Redirect'
 import { ApiResponse, useFetch } from '@/hooks/useFetch'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { createContext, useCallback, useContext } from 'react'

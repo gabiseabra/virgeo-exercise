@@ -1,8 +1,8 @@
 import { useCallback, useRef } from 'react'
 import { useAuth, withAuth } from '@/context/auth'
-import Spinner from '@/components/Spinner'
-import Shell from '@/components/Shell'
-import Redirect from '@/components/Redirect'
+import Spinner from '@/components/common/Spinner'
+import Shell from '@/components/app/Shell'
+import Redirect from '@/components/common/Redirect'
 import { logApiError } from '@/hooks/useFetch'
 
 function Login() {

@@ -1,7 +1,7 @@
 import { useAuth } from '@/context/auth'
 import { createSlot } from '@/context/slots'
 import * as Styles from './Shell.module.scss'
-import World from './World'
+import World from '../three/World'
 
 const Header = createSlot()
 
@@ -14,7 +14,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       </header>
       <main className={Styles.main} data-testid="Shell.main">
         {children}
-        <World />
+        <div className={Styles.world}>
+          <World />
+        </div>
       </main>
     </div>
   )
