@@ -21,6 +21,7 @@ export default ts.config(
         caughtErrorsIgnorePattern: '^_',
       }],
       '@stylistic/max-statements-per-line': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
     },
   },
   {
@@ -38,6 +39,7 @@ export default ts.config(
       ...hooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'react/no-unknown-property': 'off',
     },
   },
 )
