@@ -20,8 +20,8 @@ export default ts.config(
         caughtErrors: 'all',
         caughtErrorsIgnorePattern: '^_',
       }],
-      '@stylistic/max-statements-per-line': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@stylistic/max-statements-per-line': 'off',
     },
   },
   {
