@@ -12,6 +12,8 @@ import { StorageKey, StorageMap } from '@/hooks/useLocalStorage'
 
 export * from '@testing-library/react'
 
+/** Integration testing */
+
 type WrapperProps = {
   children: React.ReactNode
   route?: string
@@ -28,7 +30,9 @@ export const Wrapper = ({ children, route = '/' }: WrapperProps) => (
 )
 
 type RenderResult = RTL.RenderResult & {
+  /** A ref object containing the current `Location`. */
   location: React.RefObject<Location | null>
+  /** A user-event instance for simulating interactions. */
   user: UserEvent
 }
 
@@ -55,6 +59,14 @@ const LocationProvider = forwardRef(function LocationProvider(_: object, ref?: R
   return null
 })
 
+/** @react-three/fiber (R3F) canvas testing */
+
+/**
+ * Controller for an instance of `@react-three/fiber` renderer.
+ * @note We're using the rc version of `@react-three/test-renderer` for React 19 support, but something is wrong with
+ *       the types, so we're defining our own wrapper.
+ * @note The names of the methods match the ones from `@testing-library/react` rather than the original ones.
+*/
 type RenderR3FResult = {
   rerender: (element: React.ReactNode) => Promise<void>
   advanceTimer: (ms: number) => Promise<void>
@@ -87,6 +99,8 @@ export const actR3F = (fn: () => void) =>
   ReactThreeTestRenderer.act(fn)
 
 type FetchMock = ReturnType<typeof fetchMockJest.mockGlobal>
+
+/** Mocks */
 
 export const mockFetch = (): FetchMock => {
   return fetchMockJest.mockGlobal()
