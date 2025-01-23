@@ -1,5 +1,9 @@
-import { act, renderHook } from '@/test/utils'
+import { act, renderHook, unmockLocalStorage } from '@/test/utils'
 import { useLocalStorage } from './useLocalStorage'
+
+beforeEach(() => {
+  unmockLocalStorage()
+})
 
 describe('useLocalStorage', () => {
   it('should return the default value if no value is stored', () => {

@@ -60,6 +60,26 @@ export const mockFetch = (): FetchMock => {
   return fetchMockJest.mockGlobal()
 }
 
+export const unmockFetch = (): void => {
+  fetchMockJest.unmockGlobal()
+  fetchMockJest.mockRestore()
+}
+
 export const mockLocalStorage = (values: Partial<StorageMap> = {}) => {
   jest.spyOn(window.localStorage.__proto__, 'getItem').mockImplementation(key => JSON.stringify(values[key as StorageKey]))
+}
+
+export const unmockLocalStorage = () => {
+  unmock(window.localStorage.getItem)
+  window.localStorage.clear()
+}
+
+/** Internal functions */
+
+const isMock = (fn: unknown): fn is jest.Mock => !!(fn as jest.Mock).mock
+
+const unmock = (fn: unknown) => {
+  if (isMock(fn)) {
+    fn.mockRestore()
+  }
 }
