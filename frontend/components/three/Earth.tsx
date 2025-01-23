@@ -186,7 +186,6 @@ export default function Earth({
         )
       })
       .onUpdate((currentRotation) => {
-        console.log('update', clockRef.current)
         if (groupRef.current) {
           groupRef.current.rotation.x = currentRotation.x
           groupRef.current.rotation.y = currentRotation.y
