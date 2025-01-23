@@ -1,7 +1,9 @@
 import React, { forwardRef, useImperativeHandle } from 'react'
 import { Location, MemoryRouter, useLocation } from 'react-router'
+import * as THREE from 'three'
 import * as RTL from '@testing-library/react'
 import userEvent, { UserEvent } from '@testing-library/user-event'
+import ReactThreeTestRenderer from '@react-three/test-renderer'
 import fetchMockJest from '@fetch-mock/jest'
 import Context from '@/context'
 import Shell from '@/components/app/Shell'
@@ -53,9 +55,39 @@ const LocationProvider = forwardRef(function LocationProvider(_: object, ref?: R
   return null
 })
 
-export const flushPromises = () => RTL.act(() => new Promise(resolve => setTimeout(resolve, 0)))
+type RenderR3FResult = {
+  rerender: (element: React.ReactNode) => Promise<void>
+  advanceTimer: (ms: number) => Promise<void>
+}
+
+export const renderR3F = async (element: React.ReactNode): Promise<RenderR3FResult> => {
+  const renderer = await ReactThreeTestRenderer.create(element)
+  const clockRef = { current: 0 }
+
+  return {
+    rerender: async (element: React.ReactNode) => {
+      renderer.update(element)
+    },
+    advanceTimer: async (ms: number) => {
+      clockRef.current += ms
+      const spy = jest.spyOn(THREE.Clock.prototype, 'getElapsedTime').mockImplementation(() => {
+        // getElapsedTime returns seconds
+        return clockRef.current / 1000
+      })
+      try {
+        await renderer.advanceFrames(1, ms)
+      } finally {
+        spy.mockRestore()
+      }
+    },
+  }
+}
+
+export const actR3F = (fn: () => void) =>
+  ReactThreeTestRenderer.act(fn)
 
 type FetchMock = ReturnType<typeof fetchMockJest.mockGlobal>
+
 export const mockFetch = (): FetchMock => {
   return fetchMockJest.mockGlobal()
 }

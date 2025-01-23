@@ -105,6 +105,7 @@ export type EarthProps = {
    * Callback fired when the animation to a new position *starts*.
    */
   onTransitionStart?: (
+    tween: TWEEN.Tween<THREE.Euler>,
     fromPosition: THREE.Vector2Like,
     toPosition: THREE.Vector2Like,
   ) => void
@@ -141,6 +142,7 @@ export default function Earth({
   const groupRef = useRef<THREE.Group>(null)
   const meshRef = useRef<THREE.Mesh>(null)
   const tweenRef = useRef<TWEEN.Tween<THREE.Euler> | null>(null)
+  const clockRef = useRef<number>(0)
 
   const { nodes, materials } = useGLTF('/scene.gltf')
 
@@ -176,12 +178,15 @@ export default function Earth({
     tweenRef.current = new TWEEN.Tween(startEuler)
       .to(finalEuler, ms)
       .onStart((currentRotation) => {
+        console.log('start', clockRef.current)
         onTransitionStart?.(
+          tweenRef.current!,
           latLonFromEuler(currentRotation),
           latLonFromEuler(naiveTargetEuler),
         )
       })
       .onUpdate((currentRotation) => {
+        console.log('update', clockRef.current)
         if (groupRef.current) {
           groupRef.current.rotation.x = currentRotation.x
           groupRef.current.rotation.y = currentRotation.y
@@ -189,14 +194,16 @@ export default function Earth({
         }
       })
       .onComplete(() => {
+        console.log('complete', clockRef.current)
         tweenRef.current = null
         onTransitionEnd?.()
       })
-      .start()
+      .start(clockRef.current)
   }, [position, direction, speed, onTransitionStart, onTransitionEnd, transitionDuration])
 
-  useFrame((_, delta) => {
-    tweenRef.current?.update()
+  useFrame(({ clock }, delta) => {
+    clockRef.current = clock.getElapsedTime() * 1000
+    tweenRef.current?.update(clockRef.current)
 
     // If we are not currently tweening, spin continuously
     if (!tweenRef.current && speed > 0 && groupRef.current) {
