@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { Canvas, RootState } from '@react-three/fiber'
 import { createSlot, withSlot } from '@/context/slots'
 import Earth from './Earth'
@@ -8,18 +7,23 @@ type WorldProps = {
   /** Set to false to pause the spinning animation */
   spinning?: boolean
   center: { x: number, y: number }
+  onTransitionEnd?: () => void
+  onTransitionStart?: () => void
+  transitionDuration?: number
 }
 
 const SlotFill = createSlot<WorldProps>('WorldProps')
 
-const World = withSlot(SlotFill, as => as.reduce((acc, value) => ({ ...acc, ...value }), {
-  spinning: true,
-  center: {
-    // Amsterdam
-    x: 52.3667,
-    y: 4.8945,
-  },
-}))(function World({ spinning, center }) {
+/** The default center of the world */
+const Rio = { x: -43.1729, y: -22.9068 }
+
+const World = withSlot(SlotFill)(function World({
+  spinning = true,
+  center = Rio,
+  onTransitionEnd,
+  onTransitionStart,
+  transitionDuration,
+}) {
   const handleCreated = (state: RootState) => {
     state.gl.setClearColor(0x000000)
   }
@@ -29,14 +33,14 @@ const World = withSlot(SlotFill, as => as.reduce((acc, value) => ({ ...acc, ...v
   }
   return (
     <Canvas onCreated={handleCreated}>
-      <Suspense fallback={null}>
-        <Earth
-          speed={spinning ? 0.1 : 0}
-          position={center}
-          onTransitionEnd={() => console.log('end')}
-          onTransitionStart={() => console.log('start')}
-        />
-      </Suspense>
+      <Earth
+        speed={0.1}
+        spinning={spinning}
+        position={center}
+        onTransitionEnd={onTransitionEnd}
+        onTransitionStart={onTransitionStart}
+        transitionDuration={transitionDuration}
+      />
       <Universe />
       <ambientLight intensity={1} />
     </Canvas>

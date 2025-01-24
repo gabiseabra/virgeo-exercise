@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import * as TWEEN from '@tweenjs/tween.js'
 import { useGLTF } from '@react-three/drei'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, Suspense } from 'react'
 import { useFrame } from '@react-three/fiber'
 
 /**
@@ -61,11 +61,6 @@ function adjustForwardRotation(
 }
 
 /**
- * A base rotation correction so the 3D model's north pole is aligned with +Y.
- */
-const rotationCorrection = new THREE.Euler(Math.PI, -Math.PI / 2, Math.PI, 'XYZ')
-
-/**
  * A default transition-duration calculation:
  * It estimates how long the tween should take based on the angular difference
  * between startPosition and endPosition, divided by speed. This keeps the speed
@@ -89,9 +84,13 @@ function defaultTransitionDuration(
 export type EarthProps = {
   /**
    * The speed of the spin in radians per frame.
-   * Set to 0 to disable the spinning animation.
+   * Set to 0 to disable the spinning *and* transition animations.
    */
   speed?: number
+  /**
+   * Set to false to pause the spinning animation.
+   */
+  spinning?: boolean
   /**
    * Unit vector representing the axis about which to spin.
    */
@@ -116,11 +115,11 @@ export type EarthProps = {
   /**
    * A function that computes how long (ms) the transition should take.
    */
-  transitionDuration?: (
+  transitionDuration?: number | ((
     fromPosition: THREE.Vector2Like,
     toPosition: THREE.Vector2Like,
     speed: number
-  ) => number
+  ) => number)
 }
 
 // Defaults
@@ -133,6 +132,7 @@ const defaultPosition = { x: 0, y: 0 }
  */
 export default function Earth({
   speed = 0,
+  spinning = true,
   direction = defaultDirection,
   position = defaultPosition,
   onTransitionStart,
@@ -140,11 +140,8 @@ export default function Earth({
   transitionDuration = defaultTransitionDuration,
 }: EarthProps) {
   const groupRef = useRef<THREE.Group>(null)
-  const meshRef = useRef<THREE.Mesh>(null)
   const tweenRef = useRef<TWEEN.Tween<THREE.Euler> | null>(null)
   const clockRef = useRef<number>(0)
-
-  const { nodes, materials } = useGLTF('/scene.gltf')
 
   // On mount, initialize the group’s rotation to match the initial "position"
   useEffect(() => {
@@ -169,19 +166,23 @@ export default function Earth({
 
     const finalEuler = adjustForwardRotation(direction, startEuler, naiveTargetEuler)
 
-    const ms = transitionDuration(
-      latLonFromEuler(startEuler),
-      latLonFromEuler(finalEuler),
-      speed,
-    )
+    const ms = typeof transitionDuration === 'number'
+      ? transitionDuration
+      : transitionDuration(
+          latLonFromEuler(startEuler),
+          latLonFromEuler(finalEuler),
+          speed,
+        )
 
     tweenRef.current = new TWEEN.Tween(startEuler)
       .to(finalEuler, ms)
+      .easing(TWEEN.Easing.Quadratic.Out)
       .onStart((currentRotation) => {
+        console.log('Tween start', currentRotation, finalEuler)
         onTransitionStart?.(
           tweenRef.current!,
           latLonFromEuler(currentRotation),
-          latLonFromEuler(naiveTargetEuler),
+          latLonFromEuler(finalEuler),
         )
       })
       .onUpdate((currentRotation) => {
@@ -203,7 +204,7 @@ export default function Earth({
     tweenRef.current?.update(clockRef.current)
 
     // If we are not currently tweening, spin continuously
-    if (!tweenRef.current && speed > 0 && groupRef.current) {
+    if (!tweenRef.current && spinning && speed > 0 && groupRef.current) {
       groupRef.current.rotation.x += speed * direction.x * delta
       groupRef.current.rotation.y += speed * direction.y * delta
     }
@@ -211,15 +212,9 @@ export default function Earth({
 
   return (
     <group ref={groupRef} dispose={null}>
-      <mesh
-        ref={meshRef}
-        castShadow
-        receiveShadow
-        // @ts-ignore
-        geometry={nodes.Object_Planet_0.geometry}
-        material={materials.Planet}
-        rotation={rotationCorrection}
-      />
+      <Suspense fallback={<EarthFallback />}>
+        <EarthMesh />
+      </Suspense>
     </group>
   )
 }
@@ -230,4 +225,37 @@ License: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 Source: https://sketchfab.com/3d-models/low-poly-planet-earth-7b1dc4f802a54a6297e7a46888a85f77
 Title: Low Poly Planet Earth
 */
+function EarthMesh() {
+  const { nodes, materials } = useGLTF('/scene.gltf')
+
+  return (
+    <mesh
+      castShadow
+      receiveShadow
+      // @ts-ignore
+      geometry={nodes.Object_Planet_0.geometry}
+      material={materials.Planet}
+      rotation={rotationCorrection}
+    />
+  )
+}
+
+/**
+ * A base rotation correction so the 3D model's north pole is aligned with +Y.
+ */
+const rotationCorrection = new THREE.Euler(Math.PI, -Math.PI / 2, Math.PI, 'XYZ')
+
 useGLTF.preload('/scene.gltf')
+
+/**
+ * A fallback mesh to use when the GLTF model is loading
+ * The position offset and color are close matches to the original model.
+ */
+function EarthFallback() {
+  return (
+    <mesh position={[-0.055, -0.15, -0.055]}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshStandardMaterial color={0x51b0e4} />
+    </mesh>
+  )
+}

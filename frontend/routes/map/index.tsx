@@ -3,11 +3,12 @@ import { logApiError, useFetch } from '@/hooks/useFetch'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
 import * as L from 'leaflet'
 import * as GeoJson from 'geojson'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { GestureHandling } from 'leaflet-gesture-handling'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 import Shell from '@/components/app/Shell'
 import World from '@/components/three/World'
+import * as Styles from './index.module.scss'
 
 const AmsterdamCentraal: [number, number] = [52.379189, 4.899431]
 
@@ -38,6 +39,10 @@ function Map() {
 
   // Fetch data on mount
   useEffect(() => { request().catch(logApiError()) }, [request])
+  const [mapVisible, setMapVisible] = useState(false)
+  const handleTransitionEnd = useCallback(() => {
+    setMapVisible(true)
+  }, [])
 
   if (isLoading) return (<div>Loading...</div>)
   return (
@@ -47,38 +52,43 @@ function Map() {
       </Shell.Header>
 
       <World.Config
+        spinning={false}
         center={{ x: center[0], y: center[1] }}
+        onTransitionEnd={handleTransitionEnd}
+        transitionDuration={1000}
       />
 
-      <MapContainer
-        center={center}
-        zoom={13}
-        scrollWheelZoom={false}
-        style={{
-          position: 'absolute',
-          height: '100%',
-          width: '100%',
-          top: 0,
-          left: 0,
-        }}
-      >
-        <MapController />
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <MarkerClusterGroup
-          animate={false}
-          disableClusteringAtZoom={18}
+      <div className={Styles.map} data-hidden={!mapVisible}>
+        <MapContainer
+          center={center}
+          zoom={13}
+          scrollWheelZoom={false}
+          style={{
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            top: 0,
+            left: 0,
+          }}
         >
-          {points.map(({ geometry }, index) => (
-            <Marker
-              key={index}
-              position={geometry.coordinates.toReversed() as [number, number]}
-            />
-          ))}
-        </MarkerClusterGroup>
-      </MapContainer>
+          <MapController />
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <MarkerClusterGroup
+            animate={false}
+            disableClusteringAtZoom={18}
+          >
+            {points.map(({ geometry }, index) => (
+              <Marker
+                key={index}
+                position={geometry.coordinates.toReversed() as [number, number]}
+              />
+            ))}
+          </MarkerClusterGroup>
+        </MapContainer>
+      </div>
     </>
   )
 }
