@@ -88,7 +88,8 @@ export const renderR3F = async (element: React.ReactNode): Promise<RenderR3FResu
       })
       try {
         await renderer.advanceFrames(1, ms)
-      } finally {
+      }
+      finally {
         spy.mockRestore()
       }
     },

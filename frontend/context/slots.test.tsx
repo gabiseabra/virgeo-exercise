@@ -1,5 +1,5 @@
 import { render } from '@/test/utils'
-import { SlotsProvider, createSlot } from './slots'
+import { SlotsProvider, createSlot, reduceProps, withSlot } from './slots'
 
 describe('createSlot', () => {
   it('should render the content of Fill in Slot', () => {
@@ -26,13 +26,13 @@ describe('createSlot', () => {
           <div id="slot">
             <Slot />
           </div>
-          <Fill>Test</Fill>
-          <Fill>Test2</Fill>
+          <Fill>Hello, </Fill>
+          <Fill>World</Fill>
         </div>
       </SlotsProvider>,
     )
 
-    expect(container.innerHTML).toEqual('<div><div id="slot">TestTest2</div></div>')
+    expect(container.innerHTML).toEqual('<div><div id="slot">Hello, World</div></div>')
   })
 
   it('should isolate Slot/Fill pairs from each other', () => {
@@ -72,5 +72,71 @@ describe('createSlot', () => {
     )
 
     expect(container.innerHTML).toEqual('<div><div id="slot">3</div></div>')
+  })
+
+  it('should get a type error and console error when children of arbitrary Slot is undefined', () => {
+    const { Slot, Fill } = createSlot<() => void>()
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <SlotsProvider>
+        <div>
+          <div id="slot">
+            {/* @ts-expect-error */}
+            <Slot />
+          </div>
+          <Fill>{() => {}}</Fill>
+        </div>
+      </SlotsProvider>,
+    )
+
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Functions are not valid as a React child.'),
+      'children', 'children', 'Slot', 'children', 'Slot',
+    )
+  })
+})
+
+describe('withSlots', () => {
+  type TestProps = {
+    values: string[]
+  }
+  const TestComponent = ({ values }: TestProps) => <div id="test">{values.join('')}</div>
+
+  it('should render the initial state', () => {
+    const SlotFill = createSlot<TestProps>()
+    const Component = withSlot<TestProps>(
+      SlotFill,
+      () => ({ values: ['empty'] }),
+    )(TestComponent)
+
+    const { container } = render(
+      <SlotsProvider>
+        <div>
+          <Component />
+        </div>
+      </SlotsProvider>,
+    )
+
+    expect(container.innerHTML).toEqual('<div><div id="test">empty</div></div>')
+  })
+
+  it('should pass Fill values to the wrapped component', () => {
+    const SlotFill = createSlot<TestProps>()
+    const Component = withSlot<TestProps>(
+      SlotFill,
+      reduceProps({ values: ['empty'] }),
+    )(TestComponent)
+
+    const { container } = render(
+      <SlotsProvider>
+        <div>
+          <Component />
+          <SlotFill.Fill>{{ values: ['a', 'b'] }}</SlotFill.Fill>
+        </div>
+      </SlotsProvider>,
+    )
+
+    expect(container.innerHTML).toEqual('<div><div id="test">ab</div></div>')
   })
 })

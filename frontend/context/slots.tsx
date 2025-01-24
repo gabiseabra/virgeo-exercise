@@ -10,6 +10,44 @@ type Slots = { [k: Key]: unknown[] }
 type Key = string | symbol
 
 /**
+ * Slot props when T is a ReactNode.
+ * @note If no children function is provided, the slot will render all of the children as ReactNodes.
+ */
+export type ReactNodeSlotProps<T extends React.ReactNode> = {
+  children?: (values: T[]) => React.ReactNode
+}
+
+/**
+ * Slot props when T is an arbitrary type.
+ */
+export type ArbitrarySlotProps<T> = {
+  children: (values: T[]) => React.ReactNode
+}
+
+/** */
+export type FillProps<T> = {
+  /** The child value to fill into the slot. */
+  children: T
+}
+
+/**
+ * A pair of components that work together to create a slot/fill system.
+ */
+export type SlotFill<T> = T extends React.ReactNode ? ReactNodeSlotFill<T> : ArbitrarySlotFill<T>
+
+export type ReactNodeSlotFill<T extends React.ReactNode> = {
+  id: Key
+  Slot: React.ComponentType<ReactNodeSlotProps<T>>
+  Fill: React.ComponentType<FillProps<T>>
+}
+
+export type ArbitrarySlotFill<T> = {
+  id: Key
+  Slot: React.ComponentType<ArbitrarySlotProps<T>>
+  Fill: React.ComponentType<FillProps<T>>
+}
+
+/**
  * The context used to store all current slot values.
  */
 export const SlotsContext = createContext<UseState<Slots>>([{}, () => {}])
@@ -27,56 +65,29 @@ export function SlotsProvider({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * @typeParam T - The type of the data stored in this slot (usually `React.ReactNode`).
- * @note When T is a ReactNode, the children prop is optional, and the default behavior is to render all values.
- * @note If no children function is provided, the slot will render all of the children as ReactNodes.
- */
-export type SlotProps<T>
-  = T extends React.ReactNode
-    ? { children?: (values: T[]) => React.ReactNode }
-    : { children: (values: T[]) => React.ReactNode }
-
-/** @internal */
-type SlotPropsT<T> = {
-  id: Key
-  /** Under the hood the function is actually required. */
-  children: (values: T[]) => React.ReactNode
-}
-
-/**
  * A component that “consumes” all `<Fill>`s with the same `id`.
  *
  * Instead of directly rendering `<Fill>` contents, `<Slot>` calls the render prop `children`,
  * passing in an array of all filled values. You decide how to render them.
+ *
+ * @note If no children function is provided, the slot will render all of the children as ReactNodes.
+ * @note Slot should handle
  * @internal
  */
-function Slot<T>({ id, children }: SlotPropsT<T>) {
+function Slot<T>({ id, children }: ArbitrarySlotProps<T> & { id: Key }) {
   const [slots] = useContext(SlotsContext)
   const filledValues = (slots[id] ?? []) as T[]
   return <>{children(filledValues)}</>
 }
 
 /**
- * @typeParam T - The type of the data stored by this fill (usually `React.ReactNode`).
- */
-export type FillProps<T> = {
-  /** The child value to fill into the slot. */
-  children: T
-}
-
-/** @internal */
-type FillPropsT<T> = {
-  id: Key
-  children: T
-}
-
-/**
  * A component that “provides” its children to the `<Slot>` with the matching `id`.
  *
- * @note `<Fill>` components with duplicate ids will render their children in the order they are mounted.
- * Each fill is appended to the array of values stored for the specified slot.
+ * @note `<Fill>` components with duplicate ids will append their children to the list of slot items in the order they
+ *       are mounted.
+ * @internal
  */
-function Fill<T>({ id, children }: FillPropsT<T>) {
+function Fill<T>({ id, children }: FillProps<T> & { id: Key }) {
   const [, setSlots] = useContext(SlotsContext)
   useEffect(() => {
     setSlots(addNode(id, children))
@@ -86,29 +97,62 @@ function Fill<T>({ id, children }: FillPropsT<T>) {
 }
 
 /**
- * A pair of components that work together to create a slot/fill system.
- */
-export type SlotFill<T> = {
-  Slot: React.ComponentType<SlotProps<T>>
-  Fill: React.ComponentType<FillProps<T>>
-}
-
-/**
  * Creates a paired `<Slot>` and `<Fill>` that share a unique id under the hood. This helps
  * avoid manually managing the `id` prop and ensures each pair is isolated.
  *
  * @typeParam T - The type of data passed to the `<Fill>` and returned in the `<Slot>` array.
  */
-export const createSlot = <T = React.ReactNode>(): SlotFill<T> => {
-  const id = Symbol()
+export function createSlot<T extends React.ReactNode>(name?: string): ReactNodeSlotFill<T>
+export function createSlot<T>(name?: string): ArbitrarySlotFill<T>
+export function createSlot<T>(name?: string): SlotFill<T> {
+  const id = Symbol(name)
   const defaultChildren = (values: T[]) => values as React.ReactNode[]
   return {
-    Slot: ({ children = defaultChildren }) =>
+    id,
+    Slot: ({ children = defaultChildren }: ArbitrarySlotProps<T>) =>
       <Slot id={id}>{children}</Slot>,
     Fill: ({ children }) =>
       <Fill id={id}>{children}</Fill>,
-  }
+  } as SlotFill<T>
 }
+
+/**
+ * A higher-order component that wraps a component with a `<Slot>` component and passes down its values as props.
+ */
+export function withSlot<T>(
+  /** The slot/fill pair to use. */
+  { id, Slot }: SlotFill<T>,
+  /**
+   * A function that maps the slot values to props.
+   */
+  getProps: (values: T[]) => T,
+) {
+  return (Component: React.ComponentType<T>) =>
+    Object.assign(() => {
+      return (
+        <Slot>
+          {(values: T[]) => <Component key={String(id)} {...getProps(values)} />}
+        </Slot>
+      )
+    }, { displayName: `withSlot(${String(id)})(${Component.displayName ?? Component.name})` })
+}
+
+/**
+ * Helper function to reduce slot values into a single object.
+ * Suitable for use with `withSlot<T>()`.
+ *
+ * @example ```tsx
+ * const Example = createSlot<{ foo: string }>()
+ * const ExampleSlot = withSlot(Example, reduceProps({ foo: 'initial' }))(
+ *   ({ foo }) => <div>{foo}</div>
+ * )
+ * ```
+ */
+export const reduceProps = <T,>(initialValue: T) => (values: T[]) => // eslint-disable-line @stylistic/comma-dangle
+  values.reduce((acc, value) => ({
+    ...acc,
+    ...value,
+  }), initialValue)
 
 /** Misc functions */
 
