@@ -134,15 +134,15 @@ export function withSlot<T extends object>(
       )
     }, {
       displayName: `withSlot(${String(id)})(${Component.displayName ?? Component.name})`,
-      Config: (props: T) => <Fill>{props}</Fill>,
+      Config: (props: Partial<T>) => <Fill>{props as T}</Fill>,
     })
 }
 
-function defaultReduceProps<T extends object>(values: T[]) {
+function defaultReduceProps<T extends object>(values: T[], initialValue: T) {
   return values.reduce((acc, value) => ({
     ...acc,
     ...value,
-  }), {} as T)
+  }), initialValue)
 }
 
 /** Misc functions */
