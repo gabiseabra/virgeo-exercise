@@ -115,7 +115,6 @@ export default withSlot(Config)(function Earth({
       .to(finalEuler, ms)
       .easing(TWEEN.Easing.Quadratic.Out)
       .onStart((currentRotation) => {
-        console.log('Tween start', currentRotation, finalEuler)
         onTransitionStart?.(
           tweenRef.current!,
           latLonFromEuler(currentRotation),
