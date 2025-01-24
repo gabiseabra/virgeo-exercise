@@ -1,6 +1,12 @@
+$mapTransitionDuration: 1000ms;
+
+:export {
+  mapTransitionDuration: $mapTransitionDuration;
+}
+
 .map {
   opacity: 1;
-  transition: all 0.5s ease-out;
+  transition: all $mapTransitionDuration ease-out;
 
   &[data-hidden='true'] {
     opacity: 0;

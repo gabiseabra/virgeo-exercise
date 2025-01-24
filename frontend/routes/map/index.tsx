@@ -7,10 +7,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { GestureHandling } from 'leaflet-gesture-handling'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 import Shell from '@/components/app/Shell'
-import World from '@/components/three/World'
+import Earth from '@/components/three/Earth'
+import Camera from '@/components/three/Camera'
 import * as Styles from './index.module.scss'
 
 const AmsterdamCentraal: [number, number] = [52.379189, 4.899431]
+
+const worldAnimationDuration = 2000
+const mapTransitionDuration = parseInt(Styles.mapTransitionDuration, 10)
 
 function MapController() {
   const map = useMap()
@@ -40,22 +44,31 @@ function Map() {
   // Fetch data on mount
   useEffect(() => { request().catch(logApiError()) }, [request])
   const [mapVisible, setMapVisible] = useState(false)
-  const handleTransitionEnd = useCallback(() => {
-    setMapVisible(true)
+
+  const handleTransitionStart = useCallback(() => {
+    setTimeout(() => {
+      setMapVisible(true)
+    }, worldAnimationDuration - mapTransitionDuration)
   }, [])
 
-  if (isLoading) return (<div>Loading...</div>)
+  // Showing the 3D scene in the default state
+  if (isLoading) return null
   return (
     <>
       <Shell.Header>
         <h1>Map</h1>
       </Shell.Header>
 
-      <World.Config
+      <Earth.Config
         spinning={false}
-        center={{ x: center[0], y: center[1] }}
-        onTransitionEnd={handleTransitionEnd}
-        transitionDuration={1000}
+        position={{ x: center[0], y: center[1] }}
+        onTransitionStart={handleTransitionStart}
+        transitionDuration={worldAnimationDuration}
+      />
+      <Camera.Config
+        zoom={10}
+        position={[0, 0, 3]}
+        transitionDuration={worldAnimationDuration}
       />
 
       <div className={Styles.map} data-hidden={!mapVisible}>

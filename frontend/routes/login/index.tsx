@@ -4,6 +4,7 @@ import Spinner from '@/components/common/Spinner'
 import Shell from '@/components/app/Shell'
 import Redirect from '@/components/common/Redirect'
 import { logApiError } from '@/hooks/useFetch'
+import Camera, { lookAt } from '@/components/three/Camera'
 
 function Login() {
   const { loading, error, login } = useAuth()
@@ -24,6 +25,16 @@ function Login() {
       <Shell.Header>
         <h1>Login</h1>
       </Shell.Header>
+
+      <Camera.Config
+        fov={25}
+        position={[0, 0, 3]}
+        rotation={lookAt(
+          [0, 0, 3],
+          [-1, -0.5, 0],
+          [0.3, 0.7, 0],
+        )}
+      />
 
       {loading && <Spinner />}
 
