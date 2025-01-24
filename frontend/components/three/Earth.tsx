@@ -1,85 +1,9 @@
 import * as THREE from 'three'
 import * as TWEEN from '@tweenjs/tween.js'
 import { useGLTF } from '@react-three/drei'
-import { useRef, useEffect, Suspense } from 'react'
+import { useRef, useEffect, Suspense, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-
-/**
- * Converts a lat/lon pair (in degrees) into a "globe orientation" Euler.
- *  - Rotate about Y by -longitude
- *  - Then rotate about X by +latitude
- */
-function eulerFromLatLon(position: THREE.Vector2Like): THREE.Euler {
-  const φ = THREE.MathUtils.degToRad(position.y) // lat
-  const θ = THREE.MathUtils.degToRad(-position.x) // lon
-  return new THREE.Euler(φ, θ, 0, 'XYZ')
-}
-
-/**
- * Converts a THREE.Euler (in 'XYZ' order) back to lat/lon in degrees.
- *  - euler.x => -lat
- *  - euler.y => +lon
- */
-function latLonFromEuler(euler: THREE.Euler): THREE.Vector2 {
-  const lonDeg = THREE.MathUtils.radToDeg(euler.y) * -1
-  const latDeg = THREE.MathUtils.radToDeg(euler.x)
-  return new THREE.Vector2(lonDeg, latDeg)
-}
-
-/**
- * Converts the X/Y angles of a 'XYZ' Euler to a Vector2 (x = euler.x, y = euler.y).
- * Mainly useful for measuring angular differences.
- */
-function vector2FromEuler(euler: THREE.Euler): THREE.Vector2 {
-  return new THREE.Vector2(euler.x, euler.y)
-}
-
-/**
- * Adjusts the "targetEuler" so that the rotation is forced in a "forward direction."
- */
-function adjustForwardRotation(
-  forward: THREE.Vector2Like,
-  currentEuler: THREE.Euler,
-  targetEuler: THREE.Euler,
-): THREE.Euler {
-  const adjusted = targetEuler.clone()
-
-  const diff = new THREE.Vector2(currentEuler.y, currentEuler.x)
-    .sub(new THREE.Vector2(targetEuler.y, targetEuler.x))
-
-  const diffDir = diff.clone().normalize()
-
-  if (forward.x !== 0 && Math.sign(diffDir.x) !== Math.sign(forward.x)) {
-    adjusted.x += Math.PI * 2 * forward.x
-  }
-
-  if (forward.y !== 0 && Math.sign(diffDir.y) !== Math.sign(forward.y)) {
-    adjusted.y += Math.PI * 2 * forward.y
-  }
-
-  return adjusted
-}
-
-/**
- * A default transition-duration calculation:
- * It estimates how long the tween should take based on the angular difference
- * between startPosition and endPosition, divided by speed. This keeps the speed
- * consistent regardless of the distance between the two points.
- */
-function defaultTransitionDuration(
-  startPosition: THREE.Vector2Like,
-  endPosition: THREE.Vector2Like,
-  speed: number,
-): number {
-  if (speed === 0) return 0
-
-  const diffEuler = eulerFromLatLon({
-    x: startPosition.x - endPosition.x,
-    y: startPosition.y - endPosition.y,
-  })
-  const distance = vector2FromEuler(diffEuler).length()
-  return (distance / speed) * 1000
-}
+import { createSlot, withSlot } from '@/context/slots'
 
 export type EarthProps = {
   /**
@@ -127,11 +51,34 @@ const defaultDirection = { x: 0, y: -1 }
 const defaultPosition = { x: 0, y: 0 }
 
 /**
+ * A default transition-duration calculation:
+ * It estimates how long the tween should take based on the angular difference
+ * between startPosition and endPosition, divided by speed. This keeps the speed
+ * consistent regardless of the distance between the two points.
+ */
+function defaultTransitionDuration(
+  startPosition: THREE.Vector2Like,
+  endPosition: THREE.Vector2Like,
+  speed: number,
+): number {
+  if (speed === 0) return 0
+
+  const diffEuler = eulerFromLatLon({
+    x: startPosition.x - endPosition.x,
+    y: startPosition.y - endPosition.y,
+  })
+  const distance = new THREE.Vector2(diffEuler.x, diffEuler.y).length()
+  return (distance / speed) * 1000
+}
+
+const Config = createSlot<EarthProps>('EarthProps')
+
+/**
  * A React Three Fiber component representing a spinning Earth globe
  * that can also animate to face a given lat/lon position.
  */
-export default function Earth({
-  speed = 0,
+export default withSlot(Config)(function Earth({
+  speed = 1,
   spinning = true,
   direction = defaultDirection,
   position = defaultPosition,
@@ -143,24 +90,14 @@ export default function Earth({
   const tweenRef = useRef<TWEEN.Tween<THREE.Euler> | null>(null)
   const clockRef = useRef<number>(0)
 
-  // On mount, initialize the group’s rotation to match the initial "position"
-  useEffect(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.copy(eulerFromLatLon(position))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   // Whenever the user changes `position` or `direction`, create a new tween
   useEffect(() => {
     if (!groupRef.current) return
 
     if (speed <= 0) return
 
-    tweenRef.current?.stop()
-
-    const startEuler = groupRef.current.rotation.clone()
     const naiveTargetEuler = eulerFromLatLon(position)
+    const startEuler = groupRef.current.rotation.clone()
 
     if (startEuler.equals(naiveTargetEuler)) return
 
@@ -197,6 +134,10 @@ export default function Earth({
         onTransitionEnd?.()
       })
       .start(clockRef.current)
+
+    return () => {
+      tweenRef.current?.stop()
+    }
   }, [position, direction, speed, onTransitionStart, onTransitionEnd, transitionDuration])
 
   useFrame(({ clock }, delta) => {
@@ -210,14 +151,18 @@ export default function Earth({
     }
   })
 
+  const initialProps = useMemo(() => ({
+    rotation: eulerFromLatLon(position),
+  }), [])
+
   return (
-    <group ref={groupRef} dispose={null}>
+    <group ref={groupRef} {...initialProps}>
       <Suspense fallback={<EarthFallback />}>
         <EarthMesh />
       </Suspense>
     </group>
   )
-}
+})
 
 /*
 Author: Jacobs Development (https://sketchfab.com/Jacobs_Development)
@@ -235,27 +180,80 @@ function EarthMesh() {
       // @ts-ignore
       geometry={nodes.Object_Planet_0.geometry}
       material={materials.Planet}
+      position={positionCorrection}
       rotation={rotationCorrection}
     />
   )
 }
 
 /**
- * A base rotation correction so the 3D model's north pole is aligned with +Y.
+ * A base rotation correction so the model's north pole is aligned with +Y.
  */
 const rotationCorrection = new THREE.Euler(Math.PI, -Math.PI / 2, Math.PI, 'XYZ')
+/**
+ * XYZ offset for the model's position so the "ocean ball" is centered at 0,0,0.
+ */
+const positionCorrection = new THREE.Vector3(0.065, 0.147, 0.045)
 
 useGLTF.preload('/scene.gltf')
 
 /**
  * A fallback mesh to use when the GLTF model is loading
- * The position offset and color are close matches to the original model.
+ * The color is a close match to the original model.
  */
 function EarthFallback() {
   return (
-    <mesh position={[-0.055, -0.15, -0.055]}>
+    <mesh>
       <sphereGeometry args={[1, 32, 32]} />
       <meshStandardMaterial color={0x51b0e4} />
     </mesh>
   )
+}
+
+/**
+ * Converts a lat/lon pair (in degrees) into a "globe orientation" Euler.
+ *  - Rotate about Y by -longitude
+ *  - Then rotate about X by +latitude
+ */
+function eulerFromLatLon(position: THREE.Vector2Like): THREE.Euler {
+  const φ = THREE.MathUtils.degToRad(position.y) // lat
+  const θ = THREE.MathUtils.degToRad(-position.x) // lon
+  return new THREE.Euler(φ, θ, 0, 'XYZ')
+}
+
+/**
+ * Converts a THREE.Euler (in 'XYZ' order) back to lat/lon in degrees.
+ *  - euler.x => -lat
+ *  - euler.y => +lon
+ */
+function latLonFromEuler(euler: THREE.Euler): THREE.Vector2 {
+  const lonDeg = THREE.MathUtils.radToDeg(euler.y) * -1
+  const latDeg = THREE.MathUtils.radToDeg(euler.x)
+  return new THREE.Vector2(lonDeg, latDeg)
+}
+
+/**
+ * Adjusts the "targetEuler" so that the rotation is forced in a "forward direction."
+ */
+function adjustForwardRotation(
+  forward: THREE.Vector2Like,
+  currentEuler: THREE.Euler,
+  targetEuler: THREE.Euler,
+): THREE.Euler {
+  const adjusted = targetEuler.clone()
+
+  const diff = new THREE.Vector2(currentEuler.y, currentEuler.x)
+    .sub(new THREE.Vector2(targetEuler.y, targetEuler.x))
+
+  const diffDir = diff.clone().normalize()
+
+  if (forward.x !== 0 && Math.sign(diffDir.x) !== Math.sign(forward.x)) {
+    adjusted.x += Math.PI * 2 * forward.x
+  }
+
+  if (forward.y !== 0 && Math.sign(diffDir.y) !== Math.sign(forward.y)) {
+    adjusted.y += Math.PI * 2 * forward.y
+  }
+
+  return adjusted
 }
