@@ -7,6 +7,7 @@ import { useEffect, useMemo } from 'react'
 import { GestureHandling } from 'leaflet-gesture-handling'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 import Shell from '@/components/app/Shell'
+import World from '@/components/three/World'
 
 const AmsterdamCentraal: [number, number] = [52.379189, 4.899431]
 
@@ -44,6 +45,10 @@ function Map() {
       <Shell.Header>
         <h1>Map</h1>
       </Shell.Header>
+
+      <World.Config
+        center={{ x: center[0], y: center[1] }}
+      />
 
       <MapContainer
         center={center}

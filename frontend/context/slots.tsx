@@ -121,7 +121,7 @@ export function createSlot<T>(name?: string): SlotFill<T> {
  */
 export function withSlot<T>(
   /** The slot/fill pair to use. */
-  { id, Slot }: SlotFill<T>,
+  { id, Slot, Fill }: SlotFill<T>,
   /**
    * A function that maps the slot values to props.
    */
@@ -134,7 +134,10 @@ export function withSlot<T>(
           {(values: T[]) => <Component key={String(id)} {...getProps(values)} />}
         </Slot>
       )
-    }, { displayName: `withSlot(${String(id)})(${Component.displayName ?? Component.name})` })
+    }, {
+      displayName: `withSlot(${String(id)})(${Component.displayName ?? Component.name})`,
+      Config: (props: T) => <Fill>{props}</Fill>,
+    })
 }
 
 /**
