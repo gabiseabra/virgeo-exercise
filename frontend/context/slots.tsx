@@ -119,19 +119,17 @@ export function createSlot<T>(name?: string): SlotFill<T> {
 /**
  * A higher-order component that wraps a component with a `<Slot>` component and passes down its values as props.
  */
-export function withSlot<T>(
+export function withSlot<T extends object>(
   /** The slot/fill pair to use. */
-  { id, Slot, Fill }: SlotFill<T>,
-  /**
-   * A function that maps the slot values to props.
-   */
-  getProps: (values: T[]) => T,
+  { id, Slot, Fill }: ArbitrarySlotFill<T>,
+  /** A function that maps the slot values to props. */
+  reduceProps: (values: T[], initialValue: T) => T = defaultReduceProps,
 ) {
   return (Component: React.ComponentType<T>) =>
-    Object.assign(() => {
+    Object.assign((initialValue: T) => {
       return (
         <Slot>
-          {(values: T[]) => <Component key={String(id)} {...getProps(values)} />}
+          {(values: T[]) => <Component key={String(id)} {...reduceProps(values, initialValue)} />}
         </Slot>
       )
     }, {
@@ -140,22 +138,12 @@ export function withSlot<T>(
     })
 }
 
-/**
- * Helper function to reduce slot values into a single object.
- * Suitable for use with `withSlot<T>()`.
- *
- * @example ```tsx
- * const Example = createSlot<{ foo: string }>()
- * const ExampleSlot = withSlot(Example, reduceProps({ foo: 'initial' }))(
- *   ({ foo }) => <div>{foo}</div>
- * )
- * ```
- */
-export const reduceProps = <T,>(initialValue: T) => (values: T[]) => // eslint-disable-line @stylistic/comma-dangle
-  values.reduce((acc, value) => ({
+function defaultReduceProps<T extends object>(values: T[]) {
+  return values.reduce((acc, value) => ({
     ...acc,
     ...value,
-  }), initialValue)
+  }), {} as T)
+}
 
 /** Misc functions */
 

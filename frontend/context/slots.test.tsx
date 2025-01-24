@@ -1,5 +1,5 @@
 import { render } from '@/test/utils'
-import { SlotsProvider, createSlot, reduceProps, withSlot } from './slots'
+import { SlotsProvider, createSlot, withSlot } from './slots'
 
 describe('createSlot', () => {
   it('should render the content of Fill in Slot', () => {
@@ -103,35 +103,36 @@ describe('withSlots', () => {
   }
   const TestComponent = ({ values }: TestProps) => <div id="test">{values.join('')}</div>
 
-  it('should render the initial state', () => {
+  it('should compute final props with the given reducer', () => {
     const SlotFill = createSlot<TestProps>()
-    const Component = withSlot<TestProps>(
+    const Component = withSlot(
       SlotFill,
-      () => ({ values: ['empty'] }),
+      allProps => ({
+        values: allProps.flatMap(({ values }) => ['(', values.join(','), ')']),
+      }),
     )(TestComponent)
 
     const { container } = render(
       <SlotsProvider>
         <div>
-          <Component />
+          <Component values={[]} />
         </div>
+        <Component.Config values={['a', 'b']} />
+        <Component.Config values={['c', 'd']} />
       </SlotsProvider>,
     )
 
-    expect(container.innerHTML).toEqual('<div><div id="test">empty</div></div>')
+    expect(container.innerHTML).toEqual('<div><div id="test">(a,b)(c,d)</div></div>')
   })
 
   it('should pass Fill values to the wrapped component', () => {
     const SlotFill = createSlot<TestProps>()
-    const Component = withSlot<TestProps>(
-      SlotFill,
-      reduceProps({ values: ['empty'] }),
-    )(TestComponent)
+    const Component = withSlot(SlotFill)(TestComponent)
 
     const { container } = render(
       <SlotsProvider>
         <div>
-          <Component />
+          <Component values={[]} />
           <SlotFill.Fill>{{ values: ['a', 'b'] }}</SlotFill.Fill>
         </div>
       </SlotsProvider>,
