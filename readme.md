@@ -82,4 +82,4 @@ npm run format
 
 ## Requirements
 
-For detailed system requirements and dependencies, please refer to the [requirements.md](requirements.md) file.
+For the requirements of the assignment that started this project, please refer to the [requirements.md](requirements.md) file.
