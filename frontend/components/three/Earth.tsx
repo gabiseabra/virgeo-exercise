@@ -178,7 +178,6 @@ export default function Earth({
     tweenRef.current = new TWEEN.Tween(startEuler)
       .to(finalEuler, ms)
       .onStart((currentRotation) => {
-        console.log('start', clockRef.current)
         onTransitionStart?.(
           tweenRef.current!,
           latLonFromEuler(currentRotation),
@@ -193,7 +192,6 @@ export default function Earth({
         }
       })
       .onComplete(() => {
-        console.log('complete', clockRef.current)
         tweenRef.current = null
         onTransitionEnd?.()
       })
