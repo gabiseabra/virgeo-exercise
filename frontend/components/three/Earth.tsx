@@ -174,7 +174,9 @@ function EarthMesh() {
 
   const planetMaterial = useMemo<THREE.Material>(() => {
     const material = new THREE.MeshStandardMaterial()
-    material.copy(materials.Planet)
+    if (materials.Planet) {
+      material.copy(materials.Planet)
+    }
     material.setValues({
       metalness: 0,
       roughness: 1,

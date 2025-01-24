@@ -10,7 +10,7 @@ jest.mock('@react-three/drei', () => ({
         },
       },
       materials: {
-        Planet: {},
+        Planet: null,
       },
     })), { preload: jest.fn() }),
 }))
