@@ -61,13 +61,14 @@ function Map() {
 
       <Earth.Config
         spinning={false}
-        position={{ x: center[0], y: center[1] }}
+        position={{ y: center[0], x: center[1] }}
         onTransitionStart={handleTransitionStart}
         transitionDuration={worldAnimationDuration}
       />
       <Camera.Config
-        zoom={10}
-        position={[0, 0, 3]}
+        zoom={2}
+        fov={3}
+        position={[0, -0.05, 3]}
         transitionDuration={worldAnimationDuration}
       />
 
