@@ -31,7 +31,16 @@ export default function World() {
         rotation={[0, 0, 0]}
         transitionDuration={1000}
       />
+
+      {/* Ambient light for overall illumination */}
       <ambientLight intensity={1} />
+
+      {/* Directional light to mimic sunlight */}
+      <directionalLight
+        intensity={1}
+        position={[10, 10, 10]}
+        castShadow
+      />
     </Canvas>
   )
 }

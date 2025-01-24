@@ -172,13 +172,23 @@ Title: Low Poly Planet Earth
 function EarthMesh() {
   const { nodes, materials } = useGLTF('/scene.gltf')
 
+  const planetMaterial = useMemo<THREE.Material>(() => {
+    const material = new THREE.MeshStandardMaterial()
+    material.copy(materials.Planet)
+    material.setValues({
+      metalness: 0,
+      roughness: 1,
+    })
+    return material
+  }, [materials])
+
   return (
     <mesh
       castShadow
       receiveShadow
       // @ts-ignore
       geometry={nodes.Object_Planet_0.geometry}
-      material={materials.Planet}
+      material={planetMaterial}
       position={positionCorrection}
       rotation={rotationCorrection}
     />
