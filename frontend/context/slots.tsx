@@ -3,9 +3,10 @@
  * It works like portals, but instead of rendering a component in a different part of the DOM, it renders it
  * in a different part of the component tree.
  */
-import { createContext, useContext, useEffect, useState } from 'react'
+import getDisplayName from '@/utils/get-display-name'
+import { createContext, SetStateAction, useCallback, useContext, useEffect, useState } from 'react'
 
-type UseState<T> = [T, React.Dispatch<React.SetStateAction<T>>]
+type SetState<T> = React.Dispatch<React.SetStateAction<T>>
 type Slots = { [k: Key]: unknown[] }
 type Key = string | symbol
 
@@ -50,17 +51,46 @@ export type ArbitrarySlotFill<T> = {
 /**
  * The context used to store all current slot values.
  */
-export const SlotsContext = createContext<UseState<Slots>>([{}, () => {}])
+export const SlotContext = createContext<Slots>({})
+
+export function useSlot<T extends React.ReactNode>(SlotFill: ReactNodeSlotFill<T>): T[]
+export function useSlot<T>(SlotFill: ArbitrarySlotFill<T>): T[]
+export function useSlot<T>({ id }: { id: Key }): T[]
+export function useSlot<T>({ id }: { id: Key }): T[] {
+  const slots = useContext(SlotContext)
+  return slots[id] as T[] ?? []
+}
 
 /**
- * Provides the `SlotsContext` to children, allowing `<Slot>` and `<Fill>` components
- * to communicate which nodes should be rendered for a given slot id.
+ * The context used to store the slot provider's state's setter.
  */
-export function SlotsProvider({ children }: { children: React.ReactNode }) {
+export const FillContext = createContext<SetState<Slots>>(() => {})
+
+export function useFill<T extends React.ReactNode>(SlotFill: ReactNodeSlotFill<T>): SetState<T[]>
+export function useFill<T>(SlotFill: ArbitrarySlotFill<T>): SetState<T[]>
+export function useFill<T>({ id }: { id: Key }): SetState<T[]>
+export function useFill<T>({ id }: { id: Key }): SetState<T[]> {
+  const setSlots = useContext(FillContext)
+  return useCallback((node: SetStateAction<T[]>) => {
+    setSlots(slots => ({
+      ...slots,
+      [id]: node instanceof Function ? node(slots[id] as T[] ?? []) : node,
+    }))
+  }, [id, setSlots])
+}
+
+/**
+ * Provides the slots state to children, allowing `<Slot>` and `<Fill>` components to communicate which nodes should be
+ * rendered for a given slot id.
+ */
+export function SlotFillProvider({ children }: { children: React.ReactNode }) {
+  const [slots, setSlots] = useState<Slots>({})
   return (
-    <SlotsContext.Provider value={useState({})}>
-      {children}
-    </SlotsContext.Provider>
+    <SlotContext.Provider value={slots}>
+      <FillContext.Provider value={setSlots}>
+        {children}
+      </FillContext.Provider>
+    </SlotContext.Provider>
   )
 }
 
@@ -75,9 +105,8 @@ export function SlotsProvider({ children }: { children: React.ReactNode }) {
  * @internal
  */
 function Slot<T>({ id, children }: ArbitrarySlotProps<T> & { id: Key }) {
-  const [slots] = useContext(SlotsContext)
-  const filledValues = (slots[id] ?? []) as T[]
-  return <>{children(filledValues)}</>
+  const slot = useSlot<T>({ id })
+  return <>{children(slot)}</>
 }
 
 /**
@@ -88,11 +117,11 @@ function Slot<T>({ id, children }: ArbitrarySlotProps<T> & { id: Key }) {
  * @internal
  */
 function Fill<T>({ id, children }: FillProps<T> & { id: Key }) {
-  const [, setSlots] = useContext(SlotsContext)
+  const setSlot = useFill<T>({ id })
   useEffect(() => {
-    setSlots(addNode(id, children))
-    return () => setSlots(removeNode(id, children))
-  }, [id, children, setSlots])
+    setSlot((nodes: T[]) => [...nodes, children])
+    return () => setSlot((nodes: T[]) => nodes.filter(a => a !== children))
+  }, [children, setSlot])
   return null
 }
 
@@ -102,9 +131,9 @@ function Fill<T>({ id, children }: FillProps<T> & { id: Key }) {
  *
  * @typeParam T - The type of data passed to the `<Fill>` and returned in the `<Slot>` array.
  */
-export function createSlot<T extends React.ReactNode>(name?: Key): ReactNodeSlotFill<T>
-export function createSlot<T>(name?: Key): ArbitrarySlotFill<T>
-export function createSlot<T>(id: Key = Symbol()): SlotFill<T> {
+export function createSlotFill<T extends React.ReactNode>(name?: Key): ReactNodeSlotFill<T>
+export function createSlotFill<T>(name?: Key): ArbitrarySlotFill<T>
+export function createSlotFill<T>(id: Key = Symbol()): SlotFill<T> {
   const defaultChildren = (values: T[]) => values as React.ReactNode[]
   return {
     id,
@@ -132,7 +161,7 @@ export function withSlot<T extends object>(
         </Slot>
       )
     }, {
-      displayName: `withSlot(${String(id)})(${Component.displayName ?? Component.name})`,
+      displayName: `withSlot(${String(id)})(${getDisplayName(Component)})`,
       Config: (props: Partial<T>) => <Fill>{props as T}</Fill>,
     })
 }
@@ -143,38 +172,3 @@ function defaultReduceProps<T extends object>(values: T[], initialValue: T) {
     ...value,
   }), initialValue)
 }
-
-export type UseSlot<T> = [T[], (value: T) => () => void]
-/**
- * A hook that provides access to the values filled into a specific slot, and a method to add and remove new values.
- * The callback is a function that adds a value and returns a function that removes it.
- */
-export function useSlot<T extends React.ReactNode>({ id }: ReactNodeSlotFill<T>): UseSlot<T>
-export function useSlot<T>({ id }: ArbitrarySlotFill<T>): UseSlot<T>
-export function useSlot<T>({ id }: SlotFill<T>): UseSlot<T> {
-  const [slots, setSlots] = useContext(SlotsContext)
-  const values = (slots[id] ?? []) as T[]
-
-  function addValue(value: T) {
-    setSlots(addNode(id, value))
-    return () => setSlots(removeNode(id, value))
-  }
-
-  return [values, addValue]
-}
-
-/** Misc functions */
-
-// The following syntax is correct, and removing the comma breaks it, but there is an annoying bug with
-// @stylisting/ts/comma-dangle that will remove it but it's impossible to turn off comma-dangle only for generics.
-// TODO: use prettier instead
-// eslint-disable-next-line @stylistic/comma-dangle
-const addNode = <T,>(id: Key, node: T) => (slots: Slots) => ({
-  ...slots,
-  [id]: [...(slots[id] ?? []), node],
-})
-// eslint-disable-next-line @stylistic/comma-dangle
-const removeNode = <T,>(id: Key, node: T) => (slots: Slots) => ({
-  ...slots,
-  [id]: (slots[id] ?? []).filter(n => n !== node),
-})

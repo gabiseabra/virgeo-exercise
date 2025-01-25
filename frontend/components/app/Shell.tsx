@@ -1,9 +1,10 @@
 import { useAuth } from '@/context/auth'
-import { createSlot } from '@/context/slots'
-import * as Styles from './Shell.module.scss'
-import World from '../three/World'
+import { createSlotFill } from '@/context/slots'
+import World from '@/components/three/World'
 
-const Header = createSlot('Shell.Header')
+import * as Styles from './Shell.module.scss'
+
+const Header = createSlotFill('Shell.Header')
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (

@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import * as TWEEN from '@tweenjs/tween.js'
 import { useFrame } from '@react-three/fiber'
 import { PerspectiveCamera } from '@react-three/drei'
-import { createSlot, withSlot } from '@/context/slots'
+import { createSlotFill, withSlot } from '@/context/slots'
 import { equals } from '@/utils/equals'
 
 export type CameraProps = {
@@ -37,7 +37,7 @@ export type AnimatedCameraProps = CameraProps & {
   makeDefault?: boolean
 }
 
-const Config = createSlot<AnimatedCameraProps>('Camera.Config')
+const Config = createSlotFill<AnimatedCameraProps>('Camera.Config')
 
 /**
  * A React component that animates a PerspectiveCamera’s

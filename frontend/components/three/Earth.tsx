@@ -3,7 +3,7 @@ import * as TWEEN from '@tweenjs/tween.js'
 import { useGLTF } from '@react-three/drei'
 import { useRef, useEffect, Suspense, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { createSlot, withSlot } from '@/context/slots'
+import { createSlotFill, withSlot } from '@/context/slots'
 import { LatLngLiteral } from 'leaflet' // Import LatLngLiteral from leaflet
 
 export type EarthProps = {
@@ -40,6 +40,8 @@ type GetTransitionDuration = (
   endEuler: THREE.Euler,
 ) => number
 
+const Config = createSlotFill<EarthProps>('Earth.Config')
+
 /* Default variables and constants */
 
 /** The axis about which the Earth spins */
@@ -60,8 +62,6 @@ const getDefaultTransitionDuration = (speed: number): GetTransitionDuration => (
   const angularDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
   return (angularDistance / speed) * 1000
 }
-
-const Config = createSlot<EarthProps>('Earth.Config')
 
 /**
  * A React Three Fiber component representing a spinning Earth globe
