@@ -36,22 +36,24 @@ export const Badge = styled<BadgeProps>(Styles.badge, ({
       {...rest}
     >
       <div className={Styles.badgeIcon}>
-        {variant === 'success' && <FaCheckCircle color={Styles.successColor} />}
-        {variant === 'error' && <FaExclamationCircle color={Styles.errorColor} />}
-        {variant === 'warning' && <FaExclamationTriangle color={Styles.warningColor} />}
-        {variant === 'info' && <FaInfoCircle color={Styles.infoColor} />}
+        {variant === 'success' && <FaCheckCircle />}
+        {variant === 'error' && <FaExclamationCircle />}
+        {variant === 'warning' && <FaExclamationTriangle />}
+        {variant === 'info' && <FaInfoCircle />}
       </div>
 
       <div className={Styles.badgeBody}>
         {title && <div className={Styles.badgeTitle} id={titleId}>{title}</div>}
-        <div id={messageId}>{children}</div>
+        <p id={messageId}>{children}</p>
       </div>
 
-      {onDismiss && (
-        <button className={Styles.closeButton} type="button" onClick={onDismiss}>
-          <FaTimes />
-        </button>
-      )}
+      {onDismiss
+        ? (
+            <button className={Styles.closeButton} type="button" onClick={onDismiss}>
+              <FaTimes />
+            </button>
+          )
+        : <div />}
     </div>
   )
 })

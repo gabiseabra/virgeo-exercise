@@ -4,9 +4,9 @@ import Shell from '@/components/app/Shell'
 import Redirect from '@/components/common/Redirect'
 import { handleApiError, logApiError } from '@/hooks/useFetch'
 import Camera, { lookAt } from '@/components/three/Camera'
-import { Title } from '@/components/common/Text'
-import Form from '@/components/common/Form'
-import { Badge } from '@/components/common/Feedback'
+import { Title } from '@/components/ui/Text'
+import Form from '@/components/ui/Form'
+import { Badge } from '@/components/ui/Feedback'
 
 function Login() {
   const { loading, error, login } = useAuth()
@@ -40,7 +40,7 @@ function Login() {
       />
 
       <Form onSubmit={handleSubmit}>
-        {error && <Badge variant="error" title="Error" onDismiss={console.log}>{error.message}</Badge>}
+        {error && <Badge variant="error">{error.message}</Badge>}
 
         <Form.Field>
           <Form.Label>Username</Form.Label>

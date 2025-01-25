@@ -11,7 +11,7 @@ import Shell from '@/components/app/Shell'
 import Earth from '@/components/three/Earth'
 import Camera from '@/components/three/Camera'
 import * as Styles from './index.module.scss'
-import { Title } from '@/components/common/Text'
+import { Title } from '@/components/ui/Text'
 
 const worldTransitionDuration = 2000
 const mapTransitionDuration = parseInt(Styles.mapTransitionDuration, 10)
