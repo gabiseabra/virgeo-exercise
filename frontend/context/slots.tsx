@@ -145,6 +145,25 @@ function defaultReduceProps<T extends object>(values: T[], initialValue: T) {
   }), initialValue)
 }
 
+export type UseSlot<T> = [T[], (value: T) => () => void]
+/**
+ * A hook that provides access to the values filled into a specific slot, and a method to add and remove new values.
+ * The callback is a function that adds a value and returns a function that removes it.
+ */
+export function useSlot<T extends React.ReactNode>({ id }: ReactNodeSlotFill<T>): UseSlot<T>
+export function useSlot<T>({ id }: ArbitrarySlotFill<T>): UseSlot<T>
+export function useSlot<T>({ id }: SlotFill<T>): UseSlot<T> {
+  const [slots, setSlots] = useContext(SlotsContext)
+  const values = (slots[id] ?? []) as T[]
+
+  function addValue(value: T) {
+    setSlots(addNode(id, value))
+    return () => setSlots(removeNode(id, value))
+  }
+
+  return [values, addValue]
+}
+
 /** Misc functions */
 
 // The following syntax is correct, and removing the comma breaks it, but there is an annoying bug with

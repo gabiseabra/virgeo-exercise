@@ -1,5 +1,5 @@
-import { render } from '@/test/utils'
-import { SlotsProvider, createSlot, withSlot } from './slots'
+import { act, render, renderHook } from '@/test/utils'
+import { SlotsProvider, createSlot, withSlot, useSlot } from './slots'
 
 describe('createSlot', () => {
   it('should render the content of Fill in Slot', () => {
@@ -139,5 +139,49 @@ describe('withSlots', () => {
     )
 
     expect(container.innerHTML).toEqual('<div><div id="test">ab</div></div>')
+  })
+})
+
+describe('useSlot', () => {
+  it('should return the current values', () => {
+    const SlotFill = createSlot()
+    const { result } = renderHook(() => useSlot(SlotFill), {
+      wrapper({ children }) {
+        return (
+          <SlotsProvider>
+            <SlotFill.Fill>A</SlotFill.Fill>
+            <SlotFill.Fill>B</SlotFill.Fill>
+            {children}
+          </SlotsProvider>
+        )
+      },
+    })
+    expect(result.current[0]).toEqual(['A', 'B'])
+  })
+
+  it('should add/remove elements in the slot', async () => {
+    const SlotFill = createSlot()
+    const { result } = renderHook(() => useSlot(SlotFill), {
+      wrapper({ children }) {
+        return (
+          <SlotsProvider>
+            {children}
+          </SlotsProvider>
+        )
+      },
+    })
+
+    const addValue = (value: string) => result.current[1](value)
+
+    expect(result.current[0]).toEqual([])
+
+    const removeA = await act(() => addValue('A'))
+    expect(result.current[0]).toEqual(['A'])
+
+    await act(() => addValue('B'))
+    expect(result.current[0]).toEqual(['A', 'B'])
+
+    await act(() => removeA())
+    expect(result.current[0]).toEqual(['B'])
   })
 })
