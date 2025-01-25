@@ -29,6 +29,6 @@ function LogoutButton() {
   const { data, logout } = useAuth()
   if (!data) return null
   return (
-    <button onClick={logout}>Logout</button>
+    <button className={Styles.logout} onClick={logout}>Logout</button>
   )
 }
