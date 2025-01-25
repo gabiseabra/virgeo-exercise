@@ -2,9 +2,12 @@ import React, { useId } from 'react'
 import { FaCheckCircle, FaExclamationCircle, FaExclamationTriangle, FaInfoCircle, FaTimes } from 'react-icons/fa'
 import styled, { InferProps } from '@/utils/create-styled-component'
 import * as Styles from './Feedback.module.scss'
+import { createSlotFill, useFill } from '@/context/slots'
+
+export type FeedbackVariant = 'success' | 'error' | 'warning' | 'info'
 
 type BadgeProps = InferProps<'div'> & {
-  variant: 'success' | 'error' | 'warning' | 'info'
+  variant: FeedbackVariant
   title?: React.ReactNode
   /**
    * Callback for the close button click event.
@@ -30,6 +33,7 @@ export const Badge = styled<BadgeProps>(Styles.badge, ({
   return (
     <div
       role="status"
+      aria-live="polite"
       aria-labelledby={title && titleId}
       aria-describedby={messageId}
       data-variant={variant}
@@ -57,3 +61,47 @@ export const Badge = styled<BadgeProps>(Styles.badge, ({
     </div>
   )
 })
+
+const ToastSlotFill = createSlotFill<React.ReactNode>('Toast')
+
+export function ToastContainer() {
+  return (
+    <div className={Styles.toastContainer}>
+      <ToastSlotFill.Slot />
+    </div>
+  )
+}
+
+type UseToast = {
+  show: (createNode: (close: () => void) => React.ReactNode, ms?: number) => void
+} & {
+  [variant in FeedbackVariant]: {
+    (props: Omit<BadgeProps, 'variant'>, ms?: number): void
+  }
+}
+
+const defaultDuration = 5000
+
+/**
+ * Provides a function that adds a toast to the toast slot for a specified duration.
+ */
+export function useToast(): UseToast {
+  const setToast = useFill(ToastSlotFill)
+  const show: UseToast['show'] = (createNode, ms) => {
+    const id = new Date().getTime()
+    const removeToast = () => setToast(nodes => nodes.filter(([key]) => key !== id))
+    const toast = createNode(() => removeToast())
+    setToast(nodes => [...nodes, [id, toast]])
+    setTimeout(removeToast, ms)
+  }
+  const showVariant = (variant: FeedbackVariant) => (props: Omit<BadgeProps, 'variant'>, ms: number = defaultDuration) => {
+    show(close => <Badge variant={variant} onDismiss={close} {...props} />, ms)
+  }
+  return {
+    show,
+    success: showVariant('success'),
+    error: showVariant('error'),
+    warning: showVariant('warning'),
+    info: showVariant('info'),
+  }
+}

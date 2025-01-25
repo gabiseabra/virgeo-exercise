@@ -2,14 +2,15 @@ import { useCallback, useRef } from 'react'
 import { useAuth, withAuth } from '@/context/auth'
 import Shell from '@/components/app/Shell'
 import Redirect from '@/components/common/Redirect'
-import { handleApiError, logApiError } from '@/hooks/useFetch'
+import { logApiError } from '@/hooks/useFetch'
 import Camera, { lookAt } from '@/components/three/Camera'
 import { Title } from '@/components/ui/Text'
 import Form from '@/components/ui/Form'
-import { Badge } from '@/components/ui/Feedback'
+import { Badge, useToast } from '@/components/ui/Feedback'
 
 function Login() {
   const { loading, error, login } = useAuth()
+  const toast = useToast()
   const usernameRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
 
@@ -19,7 +20,13 @@ function Login() {
     const username = usernameRef.current?.value
     const password = passwordRef.current?.value
     if (!username || !password) return
-    await login({ username, password }).catch(handleApiError(() => {}))
+    try {
+      await login({ username, password })
+      toast.success({ children: 'Logged in!' })
+    }
+    catch (error) {
+      logApiError()(error)
+    }
   }, [login])
 
   return (
