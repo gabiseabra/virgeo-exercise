@@ -37,7 +37,7 @@ export type AnimatedCameraProps = CameraProps & {
   makeDefault?: boolean
 }
 
-const Config = createSlot<AnimatedCameraProps>()
+const Config = createSlot<AnimatedCameraProps>('Camera.Config')
 
 /**
  * A React component that animates a PerspectiveCamera’s

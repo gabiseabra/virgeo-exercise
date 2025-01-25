@@ -102,10 +102,9 @@ function Fill<T>({ id, children }: FillProps<T> & { id: Key }) {
  *
  * @typeParam T - The type of data passed to the `<Fill>` and returned in the `<Slot>` array.
  */
-export function createSlot<T extends React.ReactNode>(name?: string): ReactNodeSlotFill<T>
-export function createSlot<T>(name?: string): ArbitrarySlotFill<T>
-export function createSlot<T>(name?: string): SlotFill<T> {
-  const id = Symbol(name)
+export function createSlot<T extends React.ReactNode>(name?: Key): ReactNodeSlotFill<T>
+export function createSlot<T>(name?: Key): ArbitrarySlotFill<T>
+export function createSlot<T>(id: Key = Symbol()): SlotFill<T> {
   const defaultChildren = (values: T[]) => values as React.ReactNode[]
   return {
     id,

@@ -3,7 +3,7 @@ import { createSlot } from '@/context/slots'
 import * as Styles from './Shell.module.scss'
 import World from '../three/World'
 
-const Header = createSlot()
+const Header = createSlot('Shell.Header')
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (

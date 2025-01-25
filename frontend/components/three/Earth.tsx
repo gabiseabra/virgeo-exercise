@@ -61,7 +61,7 @@ const getDefaultTransitionDuration = (speed: number): GetTransitionDuration => (
   return (angularDistance / speed) * 1000
 }
 
-const Config = createSlot<EarthProps>('EarthProps')
+const Config = createSlot<EarthProps>('Earth.Config')
 
 /**
  * A React Three Fiber component representing a spinning Earth globe
