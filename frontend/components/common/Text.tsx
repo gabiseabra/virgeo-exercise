@@ -7,5 +7,4 @@ export const Title = styled<JSX.IntrinsicElements['h1'] & {
 }>(Styles.title, ({ as = 'h1', ...props }) =>
   React.createElement(as, props),
 )
-
-export const Body = styled(Styles.body, 'p')
+export const Label = styled(Styles.label, 'span')

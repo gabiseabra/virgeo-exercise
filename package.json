@@ -58,5 +58,8 @@
         "@react-three/test-renderer": {
             "@react-three/fiber": "^9.0.0-rc.4"
         }
+    },
+    "dependencies": {
+        "react-icons": "^5.4.0"
     }
 }

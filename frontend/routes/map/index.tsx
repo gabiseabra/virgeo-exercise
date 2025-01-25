@@ -11,6 +11,7 @@ import Shell from '@/components/app/Shell'
 import Earth from '@/components/three/Earth'
 import Camera from '@/components/three/Camera'
 import * as Styles from './index.module.scss'
+import { Title } from '@/components/common/Text'
 
 const worldTransitionDuration = 2000
 const mapTransitionDuration = parseInt(Styles.mapTransitionDuration, 10)
@@ -54,7 +55,7 @@ function Map() {
   return (
     <>
       <Shell.Header>
-        <h1>Map</h1>
+        <Title>Map</Title>
       </Shell.Header>
 
       <Earth.Config

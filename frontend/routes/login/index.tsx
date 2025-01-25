@@ -1,29 +1,31 @@
 import { useCallback, useRef } from 'react'
 import { useAuth, withAuth } from '@/context/auth'
-import Spinner from '@/components/common/Spinner'
 import Shell from '@/components/app/Shell'
 import Redirect from '@/components/common/Redirect'
-import { logApiError } from '@/hooks/useFetch'
+import { handleApiError, logApiError } from '@/hooks/useFetch'
 import Camera, { lookAt } from '@/components/three/Camera'
+import { Title } from '@/components/common/Text'
+import Form from '@/components/common/Form'
+import { Badge } from '@/components/common/Feedback'
 
 function Login() {
   const { loading, error, login } = useAuth()
   const usernameRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
 
-  const onSubmit = useCallback(async (e: React.SyntheticEvent) => {
+  const handleSubmit = useCallback(async (e: React.SyntheticEvent) => {
     e.stopPropagation()
     e.preventDefault()
     const username = usernameRef.current?.value
     const password = passwordRef.current?.value
     if (!username || !password) return
-    await login({ username, password }).catch(logApiError())
+    await login({ username, password }).catch(handleApiError(() => {}))
   }, [login])
 
   return (
     <div>
       <Shell.Header>
-        <h1>Login</h1>
+        <Title>Login</Title>
       </Shell.Header>
 
       <Camera.Config
@@ -37,20 +39,21 @@ function Login() {
         transitionDuration={1000}
       />
 
-      {loading && <Spinner />}
+      <Form onSubmit={handleSubmit}>
+        {error && <Badge variant="error" title="Error" onDismiss={console.log}>{error.message}</Badge>}
 
-      <form onSubmit={onSubmit}>
-        {error && <div>{error.message}</div>}
-        <label>
-          Username
+        <Form.Field>
+          <Form.Label>Username</Form.Label>
           <input ref={usernameRef} name="username" type="text" required />
-        </label>
-        <label>
-          Password
+        </Form.Field>
+
+        <Form.Field>
+          <Form.Label>Password</Form.Label>
           <input ref={passwordRef} name="password" type="password" required />
-        </label>
-        <button type="submit" onClick={onSubmit}>Login</button>
-      </form>
+        </Form.Field>
+
+        <button type="submit" onClick={handleSubmit}>Login</button>
+      </Form>
     </div>
   )
 }

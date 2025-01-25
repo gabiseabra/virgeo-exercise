@@ -1,0 +1,22 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0;
+}
+
+.label {
+  color: red;
+}
+
+.input {
+  font-size: 1rem;
+  font-family: 'Goldman', sans-serif;
+  font-weight: 400;
+  color: white;
+}
