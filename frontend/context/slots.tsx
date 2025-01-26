@@ -39,8 +39,15 @@ type ArbitrarySlotFill<T> = {
   Fill: React.ComponentType<FillProps<T>>
 }
 
-export const SlotContext = createContext<Slots>({})
+/**
+ * The context used to store all current slot values.
+ * @internal
+ */
+const SlotContext = createContext<Slots>({})
 
+/**
+ * Hook to access the current slot values.
+ */
 export function useSlot<T extends React.ReactNode>(SlotFill: ReactNodeSlotFill<T>): StoredItem<T>[]
 export function useSlot<T>(SlotFill: ArbitrarySlotFill<T>): StoredItem<T>[]
 export function useSlot<T>({ id }: { id: string }): StoredItem<T>[]
@@ -49,8 +56,15 @@ export function useSlot<T>({ id }: { id: string }): StoredItem<T>[] {
   return useMemo(() => slots[id] as StoredItem<T>[] || [], [slots])
 }
 
-export const FillContext = createContext<SetState<Slots>>(() => {})
+/**
+ * The context used to store the slot provider's state setter.
+ * @internal
+ */
+const FillContext = createContext<SetState<Slots>>(() => {})
 
+/**
+ * Hook to update the slot values.
+ */
 export function useFill<T extends React.ReactNode>(SlotFill: ReactNodeSlotFill<T>): SetState<Array<StoredItem<T>>>
 export function useFill<T>(SlotFill: ArbitrarySlotFill<T>): SetState<Array<StoredItem<T>>>
 export function useFill<T>({ id }: { id: string }): SetState<Array<StoredItem<T>>>
@@ -68,6 +82,9 @@ export function useFill<T>({ id }: { id: string }): SetState<Array<StoredItem<T>
   }, [id, setSlots])
 }
 
+/**
+ * Provides the slots state to children, allowing `<Slot>` and `<Fill>` components to communicate with each other.
+ */
 export function SlotFillProvider({ children }: { children: React.ReactNode }) {
   const [slots, setSlots] = useState<Slots>({})
   return (
@@ -79,6 +96,23 @@ export function SlotFillProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
+/**
+ * Creates a paired `<Slot>` and `<Fill>` that share a unique id under the hood. This helps
+ * avoid manually managing the `id` prop and ensures each pair is isolated.
+ *
+ * @typeParam T - The type of data passed to the `<Fill>` and returned in the `<Slot>` array.
+ */
+export function createSlotFill<T extends React.ReactNode>(id: string): ReactNodeSlotFill<T>
+export function createSlotFill<T>(id: string): ArbitrarySlotFill<T>
+export function createSlotFill<T>(id: string): SlotFill<T> {
+  return {
+    id,
+    Slot: createSlot({ id } as SlotFill<T>),
+    Fill: createFill({ id } as SlotFill<T>),
+  } as SlotFill<T>
+}
+
+/** @internal */
 function createSlot<T>({ id }: SlotFill<T>): React.FC<ArbitrarySlotProps<T>> {
   const defaultChildren = (values: StoredItem<T>[]) =>
     values.map(([key, value]) => (
@@ -92,6 +126,7 @@ function createSlot<T>({ id }: SlotFill<T>): React.FC<ArbitrarySlotProps<T>> {
   })
 }
 
+/** @internal */
 function createFill<T>({ id: slotId }: SlotFill<T>): React.FC<FillProps<T>> {
   return Object.assign(({ id: fillId, children }: FillProps<T>) => {
     const setSlot = useFill<T>({ id: slotId })
@@ -118,7 +153,7 @@ function createFill<T>({ id: slotId }: SlotFill<T>): React.FC<FillProps<T>> {
       return () => {
         setSlot(prev => prev.filter(([key]) => key !== uniqueId))
       }
-    }, [children, uniqueId, setSlot])
+    }, [uniqueId, setSlot])
 
     return null
   }, {
@@ -126,18 +161,12 @@ function createFill<T>({ id: slotId }: SlotFill<T>): React.FC<FillProps<T>> {
   })
 }
 
-export function createSlotFill<T extends React.ReactNode>(id: string): ReactNodeSlotFill<T>
-export function createSlotFill<T>(id: string): ArbitrarySlotFill<T>
-export function createSlotFill<T>(id: string): SlotFill<T> {
-  return {
-    id,
-    Slot: createSlot({ id } as SlotFill<T>),
-    Fill: createFill({ id } as SlotFill<T>),
-  } as SlotFill<T>
-}
-
+/**
+ * A higher-order component that wraps a component with a `<Slot>` component and passes down its values as props.
+ */
 export function withSlot<T extends object>(
   { id, Slot, Fill }: ArbitrarySlotFill<T>,
+  /** A function that reduces the slot values to a single object. */
   reduceProps: (values: T[], initialValue: T) => T = defaultReduceProps,
 ) {
   return (Component: React.ComponentType<T>) =>
@@ -158,6 +187,7 @@ export function withSlot<T extends object>(
     })
 }
 
+/** @internal */
 function defaultReduceProps<T extends object>(values: T[], initialValue: T) {
   return values.reduce((acc, value) => ({
     ...acc,
