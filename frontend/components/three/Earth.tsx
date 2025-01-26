@@ -13,14 +13,6 @@ export type EarthProps = {
    */
   speed?: number
   /**
-   * Set to false to pause the spinning animation.
-   */
-  spinning?: boolean
-  /**
-   * Unit vector representing the axis about which to spin.
-   */
-  direction?: THREE.Vector2Like
-  /**
    * The lat/lon you want the globe to face (object with lat, lng in degrees).
    * We’ll animate from the current orientation to this orientation whenever it changes.
    */
@@ -36,21 +28,37 @@ export type EarthProps = {
   /**
    * A function that computes how long (ms) the transition should take.
    */
-  transitionDuration?: number | (() => number)
+  transitionDuration?: number | GetTransitionDuration
+  /**
+   * A custom easing function for the transition animation.
+   */
+  easing?: (t: number) => number
 }
 
-// Defaults
-const defaultDirection = { x: 0, y: -1 }
-const defaultPosition = { lat: 0, lng: 0 } // Update defaultPosition
+type GetTransitionDuration = (
+  startEuler: THREE.Euler,
+  endEuler: THREE.Euler,
+) => number
 
+/* Default variables and constants */
+
+/** The axis about which the Earth spins */
+const AXIS = { x: 0, y: -1 }
+
+const defaultPosition = { lat: 0, lng: 0 } // Update defaultPosition
 /**
- * @todo A default transition-duration calculation:
+ * A default transition-duration calculation:
  * It estimates how long the tween should take based on the angular difference
  * between startPosition and endPosition, divided by speed. This keeps the speed
  * consistent regardless of the distance between the two points.
  */
-function dummyTransitionDuration(): number {
-  return 6000
+const getDefaultTransitionDuration = (speed: number): GetTransitionDuration => (startEuler, endEuler) => {
+  if (speed === 0) return 0
+  const deltaX = endEuler.x - startEuler.x
+  const deltaY = endEuler.y - startEuler.y
+  const deltaZ = endEuler.z - startEuler.z
+  const angularDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
+  return (angularDistance / speed) * 1000
 }
 
 const Config = createSlot<EarthProps>('EarthProps')
@@ -61,40 +69,43 @@ const Config = createSlot<EarthProps>('EarthProps')
  */
 export default withSlot(Config)(function Earth({
   speed = 1,
-  spinning = true,
-  direction = defaultDirection,
   position = defaultPosition,
   onTransitionStart,
   onTransitionEnd,
-  transitionDuration = dummyTransitionDuration, // Use dummyTransitionDuration
+  transitionDuration = getDefaultTransitionDuration(speed),
+  easing,
 }: EarthProps) {
   const groupRef = useRef<THREE.Group>(null)
   const tweenRef = useRef<TWEEN.Tween<THREE.Euler> | null>(null)
   const timeRef = useRef<number>(0)
   const mountedRef = useRef<boolean>(false)
 
-  // Whenever the user changes `position` or `direction`, create a new tween
+  // Store the callbacks in refs so that the tween can access the latest values
+  const onTransitionStartRef = useRef(onTransitionStart)
+  const onTransitionEndRef = useRef(onTransitionEnd)
+  onTransitionStartRef.current = onTransitionStart
+  onTransitionEndRef.current = onTransitionEnd
+
+  // Start the tween animation whenever the position changes
   useEffect(() => {
     if (!groupRef.current) return
 
-    if (speed <= 0) return
-
-    const naiveTargetEuler = eulerFromLatLon(position)
+    const targetEuler = eulerFromLatLng(position)
     const startEuler = groupRef.current.rotation.clone()
 
-    if (startEuler.equals(naiveTargetEuler)) return
+    if (startEuler.equals(targetEuler)) return
 
-    const finalEuler = adjustForwardRotation(direction, startEuler, naiveTargetEuler)
+    const finalEuler = adjustForwardRotation(startEuler, targetEuler)
 
     const ms = typeof transitionDuration === 'number'
       ? transitionDuration
-      : transitionDuration()
+      : transitionDuration(startEuler, finalEuler)
 
     tweenRef.current = new TWEEN.Tween(startEuler)
       .to(finalEuler, ms)
-      .easing(TWEEN.Easing.Quadratic.Out)
-      .onStart((currentRotation) => {
-        onTransitionStart?.() // @todo pass some parameters
+      .easing(easing)
+      .onStart(() => {
+        onTransitionStartRef.current?.()
       })
       .onUpdate((currentRotation) => {
         if (groupRef.current) {
@@ -105,14 +116,16 @@ export default withSlot(Config)(function Earth({
       })
       .onComplete(() => {
         tweenRef.current = null
-        onTransitionEnd?.()
+        onTransitionEndRef.current?.()
       })
       .start(timeRef.current)
 
     return () => {
       tweenRef.current?.stop()
     }
-  }, [position, direction, speed, onTransitionStart, onTransitionEnd, transitionDuration])
+    // only position should ever trigger an update here
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [position])
 
   useEffect(() => {
     mountedRef.current = true
@@ -130,14 +143,15 @@ export default withSlot(Config)(function Earth({
     // the component is mounted, we would trigger the tween even though the position is initial.
     if (!mountedRef.current) return
     // If we are not currently tweening, spin continuously
-    if (!tweenRef.current && spinning && speed > 0 && groupRef.current) {
-      groupRef.current.rotation.x += speed * direction.x * delta
-      groupRef.current.rotation.y += speed * direction.y * delta
+    if (!tweenRef.current && speed > 0 && groupRef.current) {
+      groupRef.current.rotation.x += (AXIS.x * speed * delta)
+      groupRef.current.rotation.y += (AXIS.y * speed * delta)
     }
   })
 
   const initialProps = useMemo(() => ({
-    rotation: eulerFromLatLon(position),
+    rotation: eulerFromLatLng(position),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [])
 
   return (
@@ -209,48 +223,32 @@ function EarthFallback() {
 
 /**
  * Converts a lat/lon pair (in degrees) into a "globe orientation" Euler.
- *  - Rotate about Y by -lng
- *  - Then rotate about X by +lat
+ *  - Rotate about Y by -longitude
+ *  - Then rotate about X by latitude
  */
-function eulerFromLatLon(position: LatLngLiteral): THREE.Euler {
-  const φ = THREE.MathUtils.degToRad(position.lat) // lat
+function eulerFromLatLng(position: LatLngLiteral): THREE.Euler {
   const θ = THREE.MathUtils.degToRad(-position.lng) // lon
+  const φ = THREE.MathUtils.degToRad(position.lat) // lat
   return new THREE.Euler(φ, θ, 0, 'XYZ')
 }
 
 /**
- * Converts a THREE.Euler (in 'XYZ' order) back to lat/lon in degrees.
- *  - euler.x => -lat
- *  - euler.y => +lon
- */
-function latLonFromEuler(euler: THREE.Euler): THREE.Vector2 {
-  const lonDeg = THREE.MathUtils.radToDeg(euler.y) * -1
-  const latDeg = THREE.MathUtils.radToDeg(euler.x)
-  return new THREE.Vector2(lonDeg, latDeg)
-}
-
-/**
- * Adjusts the "targetEuler" so that the rotation is forced in a "forward direction."
+ * Adjusts the "targetEuler" so that the rotation is forced in a forward direction with respect to the axis of rotation.
  */
 function adjustForwardRotation(
-  forward: THREE.Vector2Like,
-  currentEuler: THREE.Euler,
+  startEuler: THREE.Euler,
   targetEuler: THREE.Euler,
 ): THREE.Euler {
-  const adjusted = targetEuler.clone()
+  // Start from the current rotation
+  const finalEuler = startEuler.clone()
+  // The x axis is not locked, so we can go in the shortest path
+  finalEuler.x = targetEuler.x
+  // For the y axis, we want to make a full extra rotation if the shortest path is backwards
+  const diff = (startEuler.y - targetEuler.y) % RAD
+  finalEuler.y -= diff
+  if (diff < 0) finalEuler.y -= Math.PI * 2
 
-  const diff = new THREE.Vector2(currentEuler.y, currentEuler.x)
-    .sub(new THREE.Vector2(targetEuler.y, targetEuler.x))
-
-  const diffDir = diff.clone().normalize()
-
-  if (forward.x !== 0 && Math.sign(diffDir.x) !== Math.sign(forward.x)) {
-    adjusted.x += Math.PI * 2 * forward.x
-  }
-
-  if (forward.y !== 0 && Math.sign(diffDir.y) !== Math.sign(forward.y)) {
-    adjusted.y += Math.PI * 2 * forward.y
-  }
-
-  return adjusted
+  return finalEuler
 }
+
+const RAD = Math.PI * 2

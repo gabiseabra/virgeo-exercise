@@ -17,10 +17,8 @@ export default function World() {
   return (
     <Canvas onCreated={handleCreated}>
       <Earth
-        spinning
         speed={1}
         position={Rio}
-        transitionDuration={1000}
       />
       <Universe />
       <AnimatedCamera
@@ -29,7 +27,6 @@ export default function World() {
         zoom={1}
         position={[0, 0, 5]}
         rotation={[0, 0, 0]}
-        transitionDuration={1000}
       />
 
       {/* Ambient light for overall illumination */}

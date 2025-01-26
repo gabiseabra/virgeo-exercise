@@ -1,6 +1,7 @@
 import { withAuth } from '@/context/auth'
 import { logApiError, useFetch } from '@/hooks/useFetch'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
+import * as TWEEN from '@tweenjs/tween.js'
 import * as L from 'leaflet'
 import * as GeoJson from 'geojson'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -11,7 +12,7 @@ import Earth from '@/components/three/Earth'
 import Camera from '@/components/three/Camera'
 import * as Styles from './index.module.scss'
 
-const worldTransitionDuration = 8000
+const worldTransitionDuration = 2000
 const mapTransitionDuration = parseInt(Styles.mapTransitionDuration, 10)
 
 function MapController() {
@@ -60,6 +61,7 @@ function Map() {
         position={center}
         onTransitionStart={handleTransitionStart}
         transitionDuration={worldTransitionDuration}
+        easing={TWEEN.Easing.Quadratic.Out}
       />
       <Camera.Config
         zoom={2}
