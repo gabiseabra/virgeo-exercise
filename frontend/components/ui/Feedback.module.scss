@@ -96,7 +96,7 @@ $closeButtonIconSize: 10px;
   background-color: transparent;
   width: $closeButtonSize;
   height: $closeButtonSize;
-  padding: ($closeButtonSize - $closeButtonIconSize) / 2;
+  padding: calc(($closeButtonSize - $closeButtonIconSize) / 2);
   border: none;
   border-radius: 50%;
   display: flex;
