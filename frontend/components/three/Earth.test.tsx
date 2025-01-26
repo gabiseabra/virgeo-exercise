@@ -26,7 +26,7 @@ describe('<Earth />', () => {
     const renderer = await renderR3F(
       <Earth
         speed={1}
-        position={{ x: 0, y: 0 }}
+        position={{ lat: 0, lng: 0 }}
         onTransitionStart={onTransitionStart}
       />,
     )
@@ -35,7 +35,7 @@ describe('<Earth />', () => {
     await renderer.rerender(
       <Earth
         speed={1}
-        position={{ x: 10, y: 20 }}
+        position={{ lat: 10, lng: 20 }}
         onTransitionStart={onTransitionStart}
       />,
     )
@@ -56,7 +56,7 @@ describe('<Earth />', () => {
     const renderer = await renderR3F(
       <Earth
         speed={1}
-        position={{ x: 0, y: 0 }}
+        position={{ lat: 0, lng: 0 }}
         onTransitionStart={onTransitionStart}
         onTransitionEnd={onTransitionEnd}
         transitionDuration={transitionDuration}
@@ -66,7 +66,7 @@ describe('<Earth />', () => {
     await renderer.rerender(
       <Earth
         speed={1}
-        position={{ x: 10, y: 20 }}
+        position={{ lat: 10, lng: 20 }}
         onTransitionStart={onTransitionStart}
         onTransitionEnd={onTransitionEnd}
       />,
