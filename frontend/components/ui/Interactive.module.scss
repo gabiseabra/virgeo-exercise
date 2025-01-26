@@ -1,0 +1,20 @@
+@use "./theme" as theme;
+@use "sass:color";
+
+$buttonHeight: 30px;
+
+.button {
+  $borderColor: color.adjust(theme.$primaryColor, $lightness: -10%);
+
+  background-color: theme.$primaryColor;
+  border: 2px solid $borderColor;
+  height: $buttonHeight;
+  border-radius: theme.$radius;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  padding: theme.$space theme.$space * 2;
+  margin: 0;
+  cursor: pointer;
+}

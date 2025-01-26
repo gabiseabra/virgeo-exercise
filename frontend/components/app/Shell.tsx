@@ -2,6 +2,7 @@ import { useAuth } from '@/context/auth'
 import { createSlotFill } from '@/context/slots'
 import World from '@/components/three/World'
 import { ToastContainer, useToast } from '@/components/ui/Feedback'
+import { Button } from '@/components/ui/Interactive'
 
 import * as Styles from './Shell.module.scss'
 
@@ -12,6 +13,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <div className={Styles.wrapper} data-testid="Shell">
       <header className={Styles.header} data-testid="Shell.header">
         <Header.Slot />
+        <div className={Styles.spacer} />
         <LogoutButton />
       </header>
 
@@ -40,6 +42,6 @@ function LogoutButton() {
 
   if (!data) return null
   return (
-    <button className={Styles.logout} onClick={handleLogout}>Logout</button>
+    <Button type="button" onClick={handleLogout}>Logout</Button>
   )
 }

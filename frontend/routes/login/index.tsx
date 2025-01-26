@@ -7,12 +7,14 @@ import Camera, { lookAt } from '@/components/three/Camera'
 import { Title } from '@/components/ui/Text'
 import Form from '@/components/ui/Form'
 import { Badge, useToast } from '@/components/ui/Feedback'
+import { Button } from '@/components/ui/Interactive'
 
 function Login() {
-  const { loading, error, login } = useAuth()
-  const toast = useToast()
   const usernameRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
+
+  const { loading, error, login } = useAuth()
+  const toast = useToast()
 
   const handleSubmit = useCallback(async (e: React.SyntheticEvent) => {
     e.stopPropagation()
@@ -59,7 +61,14 @@ function Login() {
           <input ref={passwordRef} name="password" type="password" required />
         </Form.Field>
 
-        <button type="submit" onClick={handleSubmit}>Login</button>
+        <Button
+          type="submit"
+          loading={loading}
+          disabled={loading}
+          onClick={handleSubmit}
+        >
+          Login
+        </Button>
       </Form>
     </div>
   )
