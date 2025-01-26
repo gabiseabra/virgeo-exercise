@@ -5,6 +5,10 @@ import AnimatedCamera from './Camera'
 
 /** The default center of the world */
 const Rio = { lat: -22.9068, lng: -43.1729 }
+/** The camera should stay within this distance from the center */
+const NEAR = 100
+/** You can't see anything beyond this distance */
+const FAR = 3000
 
 export default function World() {
   const handleCreated = (state: RootState) => {
@@ -20,7 +24,7 @@ export default function World() {
         speed={1}
         position={Rio}
       />
-      <Universe />
+      <Universe far={FAR} near={NEAR} />
       <AnimatedCamera
         makeDefault
         fov={75}
@@ -41,7 +45,7 @@ export default function World() {
 
       <fog
         attach="fog"
-        args={[0x000000, 100, 3000]}
+        args={[0x000000, NEAR, FAR]}
       />
     </Canvas>
   )

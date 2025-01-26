@@ -4,9 +4,9 @@ import { useFrame } from '@react-three/fiber'
 
 export default function Universe({
   pointSize = 1,
-  points = 500000,
-  distance = 100,
-  range = 4000,
+  points = 50000,
+  near = 100,
+  far = 4000,
   speed = 0.00015,
 }: {
   /** Size of each point in the universe */
@@ -14,9 +14,9 @@ export default function Universe({
   /** Number of points (stars) in the universe */
   points?: number
   /** Minimum distance from the center for points */
-  distance?: number
-  /** Range of distance from the center for points */
-  range?: number
+  near?: number
+  /** Maximum distance from the center for points */
+  far?: number
   /** Speed of rotation for the universe */
   speed?: number
 }) {
@@ -43,14 +43,14 @@ export default function Universe({
         Math.cos(phi),
       )
       // Scale the unit vector by a random distance within the specified range
-      const distanceFromCenter = distance + Math.random() * range
+      const distanceFromCenter = near + Math.random() * (far - near)
       const position = unitVector.multiplyScalar(distanceFromCenter)
       // Add the position to the vertices array
       starVertices.push(position.x, position.y, position.z)
     }
     starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3))
     return starGeometry
-  }, [points, distance, range])
+  }, [points, near, far])
   useFrame(() => {
     if (!starsRef.current) return
     starsRef.current.rotation.x += speed
