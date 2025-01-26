@@ -98,8 +98,23 @@ function createFill<T>({ id: slotId }: SlotFill<T>): React.FC<FillProps<T>> {
     const generatedId = useId()
     const uniqueId = fillId || generatedId
 
+    // Update the slot when the children change
     useEffect(() => {
-      setSlot(prev => [...prev, [uniqueId, children]])
+      setSlot((prev) => {
+        const index = prev.findIndex(([key]) => key === uniqueId)
+        if (index !== -1) {
+          // Replace the existing item
+          return prev.toSpliced(index, 1, [uniqueId, children])
+        }
+        else {
+          // Add the new item to the end of the array
+          return [...prev, [uniqueId, children]]
+        }
+      })
+    }, [children, uniqueId, setSlot])
+
+    // Remove the slot when the component unmounts
+    useEffect(() => {
       return () => {
         setSlot(prev => prev.filter(([key]) => key !== uniqueId))
       }
