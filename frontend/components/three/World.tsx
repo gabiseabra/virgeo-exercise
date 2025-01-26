@@ -4,7 +4,7 @@ import Universe from './Universe'
 import AnimatedCamera from './Camera'
 
 /** The default center of the world */
-const Rio = { x: -43.1729, y: -22.9068 }
+const Rio = { lat: -22.9068, lng: -43.1729 }
 
 export default function World() {
   const handleCreated = (state: RootState) => {

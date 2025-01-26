@@ -11,9 +11,7 @@ import Earth from '@/components/three/Earth'
 import Camera from '@/components/three/Camera'
 import * as Styles from './index.module.scss'
 
-const AmsterdamCentraal: [number, number] = [52.379189, 4.899431]
-
-const worldAnimationDuration = 2000
+const worldTransitionDuration = 8000
 const mapTransitionDuration = parseInt(Styles.mapTransitionDuration, 10)
 
 function MapController() {
@@ -35,10 +33,9 @@ function Map() {
   const isLoading = !response.data || response.loading
   const isEmpty = !points.length
 
-  const center = useMemo<[number, number]>(() => {
-    if (isEmpty) return AmsterdamCentraal
-    const { lat, lng } = L.geoJSON(response.data).getBounds().getCenter()
-    return [lat, lng]
+  const center: L.LatLngLiteral = useMemo(() => {
+    if (isEmpty) return { lat: 0, lng: 0 }
+    return L.geoJSON(response.data).getBounds().getCenter()
   }, [response.data, isEmpty])
 
   // Fetch data on mount
@@ -48,7 +45,7 @@ function Map() {
   const handleTransitionStart = useCallback(() => {
     setTimeout(() => {
       setMapVisible(true)
-    }, worldAnimationDuration - mapTransitionDuration)
+    }, worldTransitionDuration - mapTransitionDuration)
   }, [])
 
   // Showing the 3D scene in the default state
@@ -60,16 +57,15 @@ function Map() {
       </Shell.Header>
 
       <Earth.Config
-        spinning={false}
-        position={{ y: center[0], x: center[1] }}
+        position={center}
         onTransitionStart={handleTransitionStart}
-        transitionDuration={worldAnimationDuration}
+        transitionDuration={worldTransitionDuration}
       />
       <Camera.Config
         zoom={2}
         fov={3}
         position={[0, -0.05, 3]}
-        transitionDuration={worldAnimationDuration}
+        transitionDuration={worldTransitionDuration}
       />
 
       <div className={Styles.map} data-hidden={!mapVisible}>

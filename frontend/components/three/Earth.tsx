@@ -4,6 +4,7 @@ import { useGLTF } from '@react-three/drei'
 import { useRef, useEffect, Suspense, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { createSlot, withSlot } from '@/context/slots'
+import { LatLngLiteral } from 'leaflet' // Import LatLngLiteral from leaflet
 
 export type EarthProps = {
   /**
@@ -20,18 +21,14 @@ export type EarthProps = {
    */
   direction?: THREE.Vector2Like
   /**
-   * The lat/lon you want the globe to face (object with x=lon, y=lat in degrees).
+   * The lat/lon you want the globe to face (object with lat, lng in degrees).
    * We’ll animate from the current orientation to this orientation whenever it changes.
    */
-  position?: THREE.Vector2Like
+  position?: LatLngLiteral
   /**
    * Callback fired when the animation to a new position *starts*.
    */
-  onTransitionStart?: (
-    tween: TWEEN.Tween<THREE.Euler>,
-    fromPosition: THREE.Vector2Like,
-    toPosition: THREE.Vector2Like,
-  ) => void
+  onTransitionStart?: () => void
   /**
    * Callback when we finish animating to `position`.
    */
@@ -39,36 +36,21 @@ export type EarthProps = {
   /**
    * A function that computes how long (ms) the transition should take.
    */
-  transitionDuration?: number | ((
-    fromPosition: THREE.Vector2Like,
-    toPosition: THREE.Vector2Like,
-    speed: number
-  ) => number)
+  transitionDuration?: number | (() => number)
 }
 
 // Defaults
 const defaultDirection = { x: 0, y: -1 }
-const defaultPosition = { x: 0, y: 0 }
+const defaultPosition = { lat: 0, lng: 0 } // Update defaultPosition
 
 /**
- * A default transition-duration calculation:
+ * @todo A default transition-duration calculation:
  * It estimates how long the tween should take based on the angular difference
  * between startPosition and endPosition, divided by speed. This keeps the speed
  * consistent regardless of the distance between the two points.
  */
-function defaultTransitionDuration(
-  startPosition: THREE.Vector2Like,
-  endPosition: THREE.Vector2Like,
-  speed: number,
-): number {
-  if (speed === 0) return 0
-
-  const diffEuler = eulerFromLatLon({
-    x: startPosition.x - endPosition.x,
-    y: startPosition.y - endPosition.y,
-  })
-  const distance = new THREE.Vector2(diffEuler.x, diffEuler.y).length()
-  return (distance / speed) * 1000
+function dummyTransitionDuration(): number {
+  return 6000
 }
 
 const Config = createSlot<EarthProps>('EarthProps')
@@ -84,7 +66,7 @@ export default withSlot(Config)(function Earth({
   position = defaultPosition,
   onTransitionStart,
   onTransitionEnd,
-  transitionDuration = defaultTransitionDuration,
+  transitionDuration = dummyTransitionDuration, // Use dummyTransitionDuration
 }: EarthProps) {
   const groupRef = useRef<THREE.Group>(null)
   const tweenRef = useRef<TWEEN.Tween<THREE.Euler> | null>(null)
@@ -106,21 +88,13 @@ export default withSlot(Config)(function Earth({
 
     const ms = typeof transitionDuration === 'number'
       ? transitionDuration
-      : transitionDuration(
-          latLonFromEuler(startEuler),
-          latLonFromEuler(finalEuler),
-          speed,
-        )
+      : transitionDuration()
 
     tweenRef.current = new TWEEN.Tween(startEuler)
       .to(finalEuler, ms)
       .easing(TWEEN.Easing.Quadratic.Out)
       .onStart((currentRotation) => {
-        onTransitionStart?.(
-          tweenRef.current!,
-          latLonFromEuler(currentRotation),
-          latLonFromEuler(finalEuler),
-        )
+        onTransitionStart?.() // @todo pass some parameters
       })
       .onUpdate((currentRotation) => {
         if (groupRef.current) {
@@ -235,12 +209,12 @@ function EarthFallback() {
 
 /**
  * Converts a lat/lon pair (in degrees) into a "globe orientation" Euler.
- *  - Rotate about Y by -longitude
- *  - Then rotate about X by +latitude
+ *  - Rotate about Y by -lng
+ *  - Then rotate about X by +lat
  */
-function eulerFromLatLon(position: THREE.Vector2Like): THREE.Euler {
-  const φ = THREE.MathUtils.degToRad(position.y) // lat
-  const θ = THREE.MathUtils.degToRad(-position.x) // lon
+function eulerFromLatLon(position: LatLngLiteral): THREE.Euler {
+  const φ = THREE.MathUtils.degToRad(position.lat) // lat
+  const θ = THREE.MathUtils.degToRad(-position.lng) // lon
   return new THREE.Euler(φ, θ, 0, 'XYZ')
 }
 
