@@ -1,6 +1,7 @@
-import Redirect from '@/components/Redirect'
+import Redirect from '@/components/common/Redirect'
 import { ApiResponse, useFetch } from '@/hooks/useFetch'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import getDisplayName from '@/utils/get-display-name'
 import { createContext, useCallback, useContext } from 'react'
 
 export type Credentials = {
@@ -68,7 +69,7 @@ export const withAuth = <Props extends object>(
   if (!data) return <Unauthorized {...props} />
   return <Authorized {...props} />
 }, {
-  displayName: `withAuth(${Authorized.displayName || Authorized.name})`,
+  displayName: `withAuth(${getDisplayName(Authorized)})`,
 })
 
 function DefaultLoading() {

@@ -1,4 +1,9 @@
-import { mockFetch, mockLocalStorage, renderRoute } from './utils'
+import { mockFetch, mockLocalStorage, renderRoute, unmockFetch, unmockLocalStorage } from './utils'
+
+beforeEach(() => {
+  unmockFetch()
+  unmockLocalStorage()
+})
 
 describe('/', () => {
   it('should redirect to /login if not authenticated', async () => {

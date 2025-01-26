@@ -1,6 +1,10 @@
-import { act, renderHook, mockFetch } from '@/test/utils'
+import { act, renderHook, mockFetch, unmockFetch } from '@/test/utils'
 import { AuthContext, AuthContextType } from '@/context/auth'
 import { ApiError, useFetch } from './useFetch'
+
+beforeEach(() => {
+  unmockFetch()
+})
 
 describe('useFetch', () => {
   it('should start with empty state', () => {
@@ -117,7 +121,7 @@ describe('useFetch', () => {
       try {
         await fetch()
       }
-      catch (_) {}
+      catch (_) { }
     })
     expect(logout).toHaveBeenCalled()
   })

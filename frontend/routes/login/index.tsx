@@ -1,9 +1,10 @@
 import { useCallback, useRef } from 'react'
 import { useAuth, withAuth } from '@/context/auth'
-import Spinner from '@/components/Spinner'
-import Shell from '@/components/Shell'
-import Redirect from '@/components/Redirect'
+import Spinner from '@/components/common/Spinner'
+import Shell from '@/components/app/Shell'
+import Redirect from '@/components/common/Redirect'
 import { logApiError } from '@/hooks/useFetch'
+import Camera, { lookAt } from '@/components/three/Camera'
 
 function Login() {
   const { loading, error, login } = useAuth()
@@ -24,6 +25,17 @@ function Login() {
       <Shell.Header>
         <h1>Login</h1>
       </Shell.Header>
+
+      <Camera.Config
+        fov={45}
+        position={[0, 0, 3]}
+        rotation={lookAt(
+          [0, 0, 3],
+          [-1.1, -0.25, 0],
+          [0.3, 0.7, 0],
+        )}
+        transitionDuration={1000}
+      />
 
       {loading && <Spinner />}
 

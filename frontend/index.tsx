@@ -2,7 +2,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
-import Shell from '@/components/Shell'
+import Shell from '@/components/app/Shell'
 import Context from '@/context'
 import Routes from '@/routes'
 
