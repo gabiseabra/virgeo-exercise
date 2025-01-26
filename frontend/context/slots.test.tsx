@@ -3,7 +3,7 @@ import { SlotFillProvider, createSlotFill, withSlot, useSlot, useFill } from './
 
 describe('createSlot', () => {
   it('should render the content of Fill in Slot', () => {
-    const { Slot, Fill } = createSlotFill<React.ReactNode>() // Default type = React.ReactNode
+    const { Slot, Fill } = createSlotFill<React.ReactNode>('test') // Default type = React.ReactNode
     const { container } = render(
       <SlotFillProvider>
         <div>
@@ -19,7 +19,7 @@ describe('createSlot', () => {
   })
 
   it('should render duplicated Fill in the order they are defined', () => {
-    const { Slot, Fill } = createSlotFill<React.ReactNode>()
+    const { Slot, Fill } = createSlotFill<React.ReactNode>('test')
     const { container } = render(
       <SlotFillProvider>
         <div>
@@ -36,8 +36,8 @@ describe('createSlot', () => {
   })
 
   it('should isolate Slot/Fill pairs from each other', () => {
-    const A = createSlotFill<React.ReactNode>()
-    const B = createSlotFill<React.ReactNode>()
+    const A = createSlotFill<React.ReactNode>('A')
+    const B = createSlotFill<React.ReactNode>('B')
 
     const { container } = render(
       <SlotFillProvider>
@@ -58,12 +58,12 @@ describe('createSlot', () => {
   })
 
   it('should render arbitrary types', () => {
-    const { Slot, Fill } = createSlotFill<number>()
+    const { Slot, Fill } = createSlotFill<number>('test')
     const { container } = render(
       <SlotFillProvider>
         <div>
           <div id="slot">
-            <Slot>{values => values.reduce((acc, v) => acc + v, 0)}</Slot>
+            <Slot>{values => values.reduce((acc, [, v]) => acc + v, 0)}</Slot>
           </div>
           <Fill>{1}</Fill>
           <Fill>{2}</Fill>
@@ -75,7 +75,7 @@ describe('createSlot', () => {
   })
 
   it('should get a type error and console error when children of arbitrary Slot is undefined', () => {
-    const { Slot, Fill } = createSlotFill<() => void>()
+    const { Slot, Fill } = createSlotFill<() => void>('test')
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -90,9 +90,9 @@ describe('createSlot', () => {
       </SlotFillProvider>,
     )
 
-    expect(consoleError).toHaveBeenCalledWith(
+    expect(consoleError).toHaveBeenCalledTimes(1)
+    expect(consoleError.mock.lastCall?.[0]).toEqual(
       expect.stringContaining('Functions are not valid as a React child.'),
-      'children', 'children', 'Slot', 'children', 'Slot',
     )
   })
 })
@@ -104,7 +104,7 @@ describe('withSlots', () => {
   const TestComponent = ({ values }: TestProps) => <div id="test">{values.join('')}</div>
 
   it('should compute final props with the given reducer', () => {
-    const SlotFill = createSlotFill<TestProps>()
+    const SlotFill = createSlotFill<TestProps>('test')
     const Component = withSlot(
       SlotFill,
       allProps => ({
@@ -126,7 +126,7 @@ describe('withSlots', () => {
   })
 
   it('should pass Fill values to the wrapped component', () => {
-    const SlotFill = createSlotFill<TestProps>()
+    const SlotFill = createSlotFill<TestProps>('test')
     const Component = withSlot(SlotFill)(TestComponent)
 
     const { container } = render(
@@ -144,26 +144,26 @@ describe('withSlots', () => {
 
 describe('useSlot', () => {
   it('should return the current values', () => {
-    const SlotFill = createSlotFill()
+    const SlotFill = createSlotFill('test')
     const { result } = renderHook(() => useSlot(SlotFill), {
       wrapper({ children }) {
         return (
           <SlotFillProvider>
-            <SlotFill.Fill>A</SlotFill.Fill>
-            <SlotFill.Fill>B</SlotFill.Fill>
+            <SlotFill.Fill id="a">A</SlotFill.Fill>
+            <SlotFill.Fill id="b">B</SlotFill.Fill>
             {children}
           </SlotFillProvider>
         )
       },
     })
-    expect(result.current).toEqual(['A', 'B'])
+    expect(result.current).toEqual([['a', 'A'], ['b', 'B']])
   })
 })
 
 describe('useFill', () => {
   it('should add/remove elements in the slot', async () => {
     const slotRef: React.Ref<React.ReactNode[] | null> = { current: null }
-    const SlotFill = createSlotFill()
+    const SlotFill = createSlotFill('test')
     const { result } = renderHook(() =>
       useFill(SlotFill), {
       wrapper({ children }) {
@@ -184,18 +184,18 @@ describe('useFill', () => {
     expect(slotRef.current).toEqual([])
 
     await act(() => {
-      result.current(['A'])
+      result.current([['a', 'A']])
     })
-    expect(slotRef.current).toEqual(['A'])
+    expect(slotRef.current).toEqual([['a', 'A']])
 
     await act(() => {
-      result.current(as => [...as, 'B'])
+      result.current(as => [...as, ['b', 'B']])
     })
-    expect(slotRef.current).toEqual(['A', 'B'])
+    expect(slotRef.current).toEqual([['a', 'A'], ['b', 'B']])
 
     await act(() => {
-      result.current(as => as.filter(a => a !== 'A'))
+      result.current(as => as.filter(([key]) => key !== 'a'))
     })
-    expect(slotRef.current).toEqual(['B'])
+    expect(slotRef.current).toEqual([['b', 'B']])
   })
 })
