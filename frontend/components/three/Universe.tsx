@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber'
 
 export default function Universe({
   pointSize = 1,
-  points = 1000000,
+  points = 500000,
   distance = 100,
   range = 4000,
   speed = 0.00015,
@@ -26,6 +26,8 @@ export default function Universe({
     size: pointSize,
     sizeAttenuation: true,
     transparent: true,
+    opacity: 0.8,
+    fog: true,
   }), [pointSize])
   const starGeometry = useMemo(() => {
     const starGeometry = new THREE.BufferGeometry()

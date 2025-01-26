@@ -27,11 +27,11 @@ function Login() {
       </Shell.Header>
 
       <Camera.Config
-        fov={25}
+        fov={45}
         position={[0, 0, 3]}
         rotation={lookAt(
           [0, 0, 3],
-          [-1, -0.5, 0],
+          [-1.1, -0.25, 0],
           [0.3, 0.7, 0],
         )}
         transitionDuration={1000}

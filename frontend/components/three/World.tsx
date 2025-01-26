@@ -38,6 +38,11 @@ export default function World() {
         position={[10, 10, 10]}
         castShadow
       />
+
+      <fog
+        attach="fog"
+        args={[0x000000, 100, 3000]}
+      />
     </Canvas>
   )
 }
