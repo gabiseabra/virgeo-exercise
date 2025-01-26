@@ -88,7 +88,8 @@ export default withSlot(Config)(function Earth({
 }: EarthProps) {
   const groupRef = useRef<THREE.Group>(null)
   const tweenRef = useRef<TWEEN.Tween<THREE.Euler> | null>(null)
-  const clockRef = useRef<number>(0)
+  const timeRef = useRef<number>(0)
+  const mountedRef = useRef<boolean>(false)
 
   // Whenever the user changes `position` or `direction`, create a new tween
   useEffect(() => {
@@ -132,17 +133,28 @@ export default withSlot(Config)(function Earth({
         tweenRef.current = null
         onTransitionEnd?.()
       })
-      .start(clockRef.current)
+      .start(timeRef.current)
 
     return () => {
       tweenRef.current?.stop()
     }
   }, [position, direction, speed, onTransitionStart, onTransitionEnd, transitionDuration])
 
-  useFrame(({ clock }, delta) => {
-    clockRef.current = clock.getElapsedTime() * 1000
-    tweenRef.current?.update(clockRef.current)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
+  useFrame(({ clock }, delta) => {
+    timeRef.current = clock.getElapsedTime() * 1000
+    tweenRef.current?.update(timeRef.current)
+
+    // This ensures that the spinning animation doesn't start before we process the initial tween animation.
+    // This is important because the tween animation is based on the current rotation, so if we start spinning before
+    // the component is mounted, we would trigger the tween even though the position is initial.
+    if (!mountedRef.current) return
     // If we are not currently tweening, spin continuously
     if (!tweenRef.current && spinning && speed > 0 && groupRef.current) {
       groupRef.current.rotation.x += speed * direction.x * delta
